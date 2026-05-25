@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ _('Profilim') }} - {{ _('Zaman & Görev Yöneticisi') }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header border-0 py-4 text-center">
+                    <!-- Profil Resmi ve Düzenleme Eklentisi -->
+                    <div class="avatar-wrapper mb-3">
+                        <img src="{{ url_for('static', filename='uploads/' + current_user.avatar) }}" alt="Avatar" class="avatar-image">
+                    </div>
+                    <h3 class="fw-bold m-0 text-white">{{ current_user.username }}</h3>
+                    <p class="text-secondary small m-0 mt-1">{{ current_user.email }}</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('main.profile') }}" enctype="multipart/form-data">
+                        <!-- Profil Resmi Yükleme (Bonus Özellik +4 Puan) -->
+                        <div class="mb-4">
+                            <label class="form-label text-secondary fs-7 fw-semibold">{{ _('Profil Fotoğrafını Değiştir') }}</label>
+                            <div class="d-flex align-items-center gap-3">
+                                <label for="avatar-input" class="btn btn-outline-light d-flex align-items-center gap-2 m-0 px-4 py-2">
+                                    <i class="bi bi-camera-fill text-primary"></i>
+                                    <span>{{ _('Fotoğraf Seç') }}</span>
+                                </label>
+                                <input type="file" id="avatar-input" name="avatar" class="d-none" accept=".png,.jpg,.jpeg,.gif">
+                                <span id="avatar-label" class="text-secondary small">{{ _('Dosya seçilmedi') }}</span>
+                            </div>
+                            <div class="form-text text-secondary fs-8 mt-1.5">{{ _('Desteklenen formatlar: PNG, JPG, JPEG, GIF (Maks. 2MB)') }}</div>
+                        </div>
+
+                        <!-- Kullanıcı Adı Girişi -->
+                        <div class="mb-3">
+                            <label for="username" class="form-label text-secondary fs-7 fw-semibold">{{ _('Kullanıcı Adı') }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary border-end-0 text-secondary"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control border-secondary border-start-0 ps-0" id="username" name="username" value="{{ current_user.username }}" required>
+                            </div>
+                        </div>
+
+                        <!-- E-posta Girişi -->
+                        <div class="mb-4">
+                            <label for="email" class="form-label text-secondary fs-7 fw-semibold">{{ _('E-posta Adresi') }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary border-end-0 text-secondary"><i class="bi bi-envelope"></i></span>
+                                <input type="email" class="form-control border-secondary border-start-0 ps-0" id="email" name="email" value="{{ current_user.email }}" required>
+                            </div>
+                        </div>
+
+                        <!-- Kaydetme Butonu -->
+                        <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-3 mb-2">
+                            <i class="bi bi-save me-1.5"></i>{{ _('Değişiklikleri Kaydet') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

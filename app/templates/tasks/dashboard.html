@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ _('Görev Paneli') }} - {{ _('Zaman & Görev Yöneticisi') }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Üst Başlık & Arama -->
+    <div class="row align-items-center mb-4 g-3">
+        <div class="col-md-6">
+            <h2 class="fw-bold m-0 text-white"><i class="bi bi-calendar2-check text-primary me-2"></i>{{ _('Zaman Çizelgeniz') }}</h2>
+            <p class="text-secondary m-0">{{ _('Günlük, haftalık ve aylık planlarınızı akıllıca yönetin.') }}</p>
+        </div>
+        <div class="col-md-6">
+            <form method="GET" action="{{ url_for('tasks.dashboard') }}" class="d-flex gap-2">
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary border-end-0 text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control border-secondary border-start-0 ps-0" name="q" value="{{ search_query }}" placeholder="{{ _('Görevlerde arayın...') }}">
+                </div>
+                {% if period_filter != 'all' %}<input type="hidden" name="period" value="{{ period_filter }}">{% endif %}
+                {% if priority_filter != 'all' %}<input type="hidden" name="priority" value="{{ priority_filter }}">{% endif %}
+                <button type="submit" class="btn btn-primary px-3">{{ _('Ara') }}</button>
+                {% if search_query %}
+                    <a href="{{ url_for('tasks.dashboard') }}" class="btn btn-outline-light"><i class="bi bi-x-lg"></i></a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Sol Bölüm: Yeni Görev Ekle & AI Hızlı Bağlantı -->
+        <div class="col-lg-4">
+            <div class="card border-0 mb-4">
+                <div class="card-header border-0 py-3">
+                    <h5 class="fw-bold m-0 text-white"><i class="bi bi-plus-circle-fill text-primary me-2"></i>{{ _('Yeni Görev Ekle') }}</h5>
+                </div>
+                <div class="card-body p-4 pt-0">
+                    <form method="POST" action="{{ url_for('tasks.add_task') }}">
+                        <div class="mb-3">
+                            <label for="title" class="form-label text-secondary fs-7 fw-semibold">{{ _('Görev Başlığı') }}</label>
+                            <input type="text" class="form-control border-secondary" id="title" name="title" placeholder="{{ _('örn. Python Projesi Hazırla') }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label text-secondary fs-7 fw-semibold">{{ _('Açıklama') }}</label>
+                            <textarea class="form-control border-secondary" id="description" name="description" rows="2" placeholder="{{ _('Görev detaylarını buraya yazın...') }}"></textarea>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label for="period" class="form-label text-secondary fs-7 fw-semibold">{{ _('Periyot') }}</label>
+                                <select class="form-select border-secondary" id="period" name="period">
+                                    <option value="daily">{{ _('Günlük') }}</option>
+                                    <option value="weekly">{{ _('Haftalık') }}</option>
+                                    <option value="monthly">{{ _('Aylık') }}</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label for="priority" class="form-label text-secondary fs-7 fw-semibold">{{ _('Öncelik') }}</label>
+                                <select class="form-select border-secondary" id="priority" name="priority">
+                                    <option value="High" class="text-danger">🔴 {{ _('Yüksek') }}</option>
+                                    <option value="Medium" class="text-warning" selected>🟡 {{ _('Orta') }}</option>
+                                    <option value="Low" class="text-success">🟢 {{ _('Düşük') }}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-4">
+                            <div class="col-6">
+                                <label for="start_time" class="form-label text-secondary fs-7 fw-semibold">{{ _('Başlangıç') }}</label>
+                                <input type="time" class="form-control border-secondary" id="start_time" name="start_time" value="09:00" required>
+                            </div>
+                            <div class="col-6">
+                                <label for="end_time" class="form-label text-secondary fs-7 fw-semibold">{{ _('Bitiş') }}</label>
+                                <input type="time" class="form-control border-secondary" id="end_time" name="end_time" value="10:00" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2.5"><i class="bi bi-check-lg me-1"></i>{{ _('Planla ve Ekle') }}</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- AI Analiz Kartı -->
+            <div class="card border-0 ai-glow-card">
+                <div class="card-body p-4 text-center">
+                    <i class="bi bi-cpu-fill text-info fs-1 mb-2 d-inline-block"></i>
+                    <h5 class="fw-bold text-white mb-2">{{ _('Yapay Zeka Analizi') }}</h5>
+                    <p class="text-secondary small mb-4">{{ _('Görev çakışmalarını tespit edin, önceliklerinize göre optimize edilmiş programınızı yapay zeka ile hemen oluşturun.') }}</p>
+                    <form method="POST" action="{{ url_for('tasks.ai_optimize') }}">
+                        <button type="submit" class="btn btn-outline-info w-100 py-2"><i class="bi bi-magic me-1"></i>{{ _('Planı Optimize Et') }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ Bölüm: Görev Listesi ve Filtreleme -->
+        <div class="col-lg-8">
+            <div class="card border-0 h-100">
+                <div class="card-header border-0 py-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <!-- Filtre Seçenekleri -->
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ url_for('tasks.dashboard', period='all', priority=priority_filter, q=search_query) }}" class="btn btn-sm {% if period_filter == 'all' %}btn-primary{% else %}btn-outline-light{% endif %} rounded-pill px-3">{{ _('Tümü') }}</a>
+                        <a href="{{ url_for('tasks.dashboard', period='daily', priority=priority_filter, q=search_query) }}" class="btn btn-sm {% if period_filter == 'daily' %}btn-primary{% else %}btn-outline-light{% endif %} rounded-pill px-3">{{ _('Günlük') }}</a>
+                        <a href="{{ url_for('tasks.dashboard', period='weekly', priority=priority_filter, q=search_query) }}" class="btn btn-sm {% if period_filter == 'weekly' %}btn-primary{% else %}btn-outline-light{% endif %} rounded-pill px-3">{{ _('Haftalık') }}</a>
+                        <a href="{{ url_for('tasks.dashboard', period='monthly', priority=priority_filter, q=search_query) }}" class="btn btn-sm {% if period_filter == 'monthly' %}btn-primary{% else %}btn-outline-light{% endif %} rounded-pill px-3">{{ _('Aylık') }}</a>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-secondary fs-7 fw-semibold">{{ _('Öncelik:') }}</span>
+                        <select class="form-select form-select-sm border-secondary rounded-pill bg-dark text-white px-3" style="width: auto;" onchange="location = this.value;">
+                            <option value="{{ url_for('tasks.dashboard', period=period_filter, priority='all', q=search_query) }}" {% if priority_filter == 'all' %}selected{% endif %}>{{ _('Tümü') }}</option>
+                            <option value="{{ url_for('tasks.dashboard', period=period_filter, priority='High', q=search_query) }}" {% if priority_filter == 'High' %}selected{% endif %}>{{ _('Yüksek') }}</option>
+                            <option value="{{ url_for('tasks.dashboard', period=period_filter, priority='Medium', q=search_query) }}" {% if priority_filter == 'Medium' %}selected{% endif %}>{{ _('Orta') }}</option>
+                            <option value="{{ url_for('tasks.dashboard', period=period_filter, priority='Low', q=search_query) }}" {% if priority_filter == 'Low' %}selected{% endif %}>{{ _('Düşük') }}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    {% if tasks %}
+                        <div class="task-list">
+                            {% for task in tasks %}
+                                <div class="task-item priority-{{ task.priority }} {% if task.is_completed %}completed{% endif %} d-flex align-items-center justify-content-between gap-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <!-- Tamamlama Butonu -->
+                                        <form method="POST" action="{{ url_for('tasks.complete_task', task_id=task.id) }}" class="m-0">
+                                            <button type="submit" class="btn btn-link p-0 text-decoration-none shadow-none">
+                                                {% if task.is_completed %}
+                                                    <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                                                {% else %}
+                                                    <i class="bi bi-circle text-secondary fs-4"></i>
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                        
+                                        <div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <h6 class="task-title fw-bold m-0 text-white">{{ task.title }}</h6>
+                                                <span class="badge bg-secondary-subtle text-secondary fs-8 rounded px-2">{{ task.period | upper }}</span>
+                                            </div>
+                                            {% if task.description %}
+                                                <p class="text-secondary small m-0 mt-1">{{ task.description }}</p>
+                                            {% endif %}
+                                            <div class="d-flex align-items-center gap-2.5 mt-1.5 text-secondary fs-7">
+                                                <i class="bi bi-clock"></i>
+                                                <span>{{ task.start_time }} - {{ task.end_time }}</span>
+                                                <span class="mx-1">&bull;</span>
+                                                {% if task.priority == 'High' %}
+                                                    <span class="text-danger fw-semibold"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ _('Yüksek Öncelik') }}</span>
+                                                {% elif task.priority == 'Medium' %}
+                                                    <span class="text-warning fw-semibold"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ _('Orta Öncelik') }}</span>
+                                                {% else %}
+                                                    <span class="text-success fw-semibold"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ _('Düşük Öncelik') }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Silme Butonu -->
+                                    <form method="POST" action="{{ url_for('tasks.delete_task', task_id=task.id) }}" class="m-0">
+                                        <button type="submit" class="btn btn-sm btn-outline-light border-0 text-danger-hover rounded-circle p-1.5" onclick="return confirm('{{ _('Bu görevi silmek istediğinize emin misiniz?') }}')">
+                                            <i class="bi bi-trash3 fs-5"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <!-- Boş Liste Uyarısı -->
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox text-secondary fs-1 d-block mb-3"></i>
+                            <h5 class="fw-semibold text-white">{{ _('Burada henüz bir görev yok') }}</h5>
+                            <p class="text-secondary small">{{ _('Yeni planlar yapmak için sol paneldeki görev formunu kullanabilirsiniz.') }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

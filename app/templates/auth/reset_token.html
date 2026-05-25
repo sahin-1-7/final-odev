@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ _('Yeni Şifre Belirle') }} - {{ _('Zaman & Görev Yöneticisi') }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header border-0 py-4 text-center">
+                    <i class="bi bi-shield-check text-primary fs-1 mb-2"></i>
+                    <h3 class="fw-bold m-0 text-white">{{ _('Yeni Şifre Belirle') }}</h3>
+                    <p class="text-secondary small m-0 mt-1">{{ _('Hesabınız için yeni ve güçlü bir şifre girin.') }}</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label for="password" class="form-label text-secondary fs-7 fw-semibold">{{ _('Yeni Şifre') }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary border-end-0 text-secondary"><i class="bi bi-key"></i></span>
+                                <input type="password" class="form-control border-secondary border-start-0 ps-0" id="password" name="password" placeholder="••••••••" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-3 mb-3">{{ _('Şifremi Güncelle') }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

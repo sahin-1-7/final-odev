@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ _('Zaman & Görev Yöneticisi') }} - {{ _('Yapay Zeka Destekli Planlayıcı') }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row align-items-center py-5 g-5">
+        <!-- Sol taraf: Göz Alıcı Metin ve CTA -->
+        <div class="col-lg-6">
+            <div class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5 fs-7 mb-3 d-inline-flex align-items-center gap-1.5">
+                <i class="bi bi-stars animate-pulse text-info"></i> {{ _('Yapay Zeka Destekli Akıllı Zaman Yönetimi') }}
+            </div>
+            <h1 class="display-4 fw-extrabold text-white mb-3 tracking-tight">
+                {{ _('Zamanınızı') }} <span class="text-primary">{{ _('Yapay Zeka') }}</span> {{ _('ile Yeniden Şekillendirin') }}
+            </h1>
+            <p class="lead text-secondary mb-4">
+                {{ _('Spagetti kodlardan arınmış, modüler Flask mimarisiyle geliştirilmiş; çakışma analizleri ve kişiselleştirilmiş verimlilik önerileri sunan dönem projesi.') }}
+            </p>
+            <div class="d-flex flex-wrap gap-3">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg rounded-pill px-4 py-2.5 shadow-sm"><i class="bi bi-rocket-takeoff me-2"></i>{{ _('Hemen Ücretsiz Başla') }}</a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg rounded-pill px-4 py-2.5"><i class="bi bi-box-arrow-in-right me-2"></i>{{ _('Giriş Yap') }}</a>
+            </div>
+        </div>
+        
+        <!-- Sağ taraf: Premium UI Mockup / Tasarım Öğesi -->
+        <div class="col-lg-6">
+            <div class="card border-0 glass-card p-4 ai-glow-card">
+                <div class="d-flex align-items-center justify-content-between mb-4 border-bottom border-secondary pb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-cpu-fill text-info fs-3 animate-pulse"></i>
+                        <h5 class="fw-bold m-0 text-white">{{ _('AI Zaman Asistanı') }}</h5>
+                    </div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5 fs-8">{{ _('AKTİF') }}</span>
+                </div>
+                
+                <div class="task-item priority-High p-3 mb-2.5 rounded-3 border-start-3">
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-bold text-white small">🔥 {{ _('Dönem Projesi Teslimi') }}</span>
+                        <span class="text-secondary small">09:00 - 11:00</span>
+                    </div>
+                </div>
+                
+                <div class="task-item priority-Medium p-3 mb-3 rounded-3 border-start-3">
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-bold text-white small">⚡ {{ _(' Flask Uygulamasını Sun') }}</span>
+                        <span class="text-secondary small">11:30 - 13:00</span>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info border-0 rounded-3 p-3 m-0 small d-flex gap-2">
+                    <i class="bi bi-info-circle-fill fs-5 text-info lh-1"></i>
+                    <div>
+                        <strong class="text-white">{{ _('Yapay Zeka Uyarısı:') }}</strong> 
+                        {{ _('Zamanlama planınızda herhangi bir çakışma bulunmamaktadır. Günlük hedeflerinize ulaşmak için hazırsınız!') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,423 @@
+# Turkish translations for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-05-25 17:51+0300\n"
+"PO-Revision-Date: 2026-05-25 17:51+0300\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: tr\n"
+"Language-Team: tr <LL@li.org>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: app/templates/base.html:6
+msgid "Zaman ve Görev Yöneticisi"
+msgstr ""
+
+#: app/templates/auth/login.html:3 app/templates/auth/register.html:3
+#: app/templates/auth/reset_request.html:3
+#: app/templates/auth/reset_token.html:3 app/templates/base.html:23
+#: app/templates/main/errors.html:3 app/templates/main/index.html:3
+#: app/templates/main/profile.html:3 app/templates/tasks/ai_planner.html:3
+#: app/templates/tasks/dashboard.html:3
+msgid "Zaman & Görev Yöneticisi"
+msgstr ""
+
+#: app/templates/base.html:34
+msgid "Panel"
+msgstr ""
+
+#: app/templates/base.html:39 app/templates/tasks/ai_planner.html:3
+msgid "Yapay Zeka Planlayıcı"
+msgstr ""
+
+#: app/templates/base.html:69 app/templates/main/profile.html:3
+msgid "Profilim"
+msgstr ""
+
+#: app/templates/base.html:71
+msgid "Çıkış Yap"
+msgstr ""
+
+#: app/templates/auth/login.html:3 app/templates/auth/login.html:34
+#: app/templates/base.html:76 app/templates/main/index.html:21
+msgid "Giriş Yap"
+msgstr ""
+
+#: app/templates/auth/register.html:3 app/templates/base.html:77
+msgid "Kayıt Ol"
+msgstr ""
+
+#: app/templates/base.html:113
+msgid "Vibe Coding ile tasarlandı."
+msgstr ""
+
+#: app/templates/auth/login.html:12
+msgid "Tekrar Hoş Geldiniz"
+msgstr ""
+
+#: app/templates/auth/login.html:13
+msgid "Hesabınıza erişmek için bilgilerinizi girin."
+msgstr ""
+
+#: app/templates/auth/login.html:18 app/templates/auth/register.html:18
+#: app/templates/main/profile.html:36
+msgid "Kullanıcı Adı"
+msgstr ""
+
+#: app/templates/auth/login.html:21 app/templates/auth/register.html:21
+msgid "kullanici_adi"
+msgstr ""
+
+#: app/templates/auth/login.html:26 app/templates/auth/register.html:32
+msgid "Şifre"
+msgstr ""
+
+#: app/templates/auth/login.html:27 app/templates/auth/reset_request.html:3
+#: app/templates/auth/reset_request.html:12
+msgid "Şifremi Unuttum"
+msgstr ""
+
+#: app/templates/auth/login.html:37
+msgid "Hesabınız yok mu?"
+msgstr ""
+
+#: app/templates/auth/login.html:38
+msgid "Kayıt Olun"
+msgstr ""
+
+#: app/templates/auth/register.html:12
+msgid "Yeni Hesap Oluştur"
+msgstr ""
+
+#: app/templates/auth/register.html:13
+msgid "Kullanmaya başlamak için kaydolun."
+msgstr ""
+
+#: app/templates/auth/register.html:25 app/templates/auth/reset_request.html:18
+#: app/templates/main/profile.html:45
+msgid "E-posta Adresi"
+msgstr ""
+
+#: app/templates/auth/register.html:38
+msgid "Hesap Oluştur"
+msgstr ""
+
+#: app/templates/auth/register.html:41
+msgid "Zaten üye misiniz?"
+msgstr ""
+
+#: app/templates/auth/register.html:42
+msgid "Giriş Yapın"
+msgstr ""
+
+#: app/templates/auth/reset_request.html:13
+msgid "Hesabınızın kayıtlı e-posta adresini girin."
+msgstr ""
+
+#: app/templates/auth/reset_request.html:24
+msgid "Sıfırlama Bağlantısı Gönder"
+msgstr ""
+
+#: app/templates/auth/reset_request.html:27
+msgid "Giriş Sayfasına Dön"
+msgstr ""
+
+#: app/templates/auth/reset_token.html:3 app/templates/auth/reset_token.html:12
+msgid "Yeni Şifre Belirle"
+msgstr ""
+
+#: app/templates/auth/reset_token.html:13
+msgid "Hesabınız için yeni ve güçlü bir şifre girin."
+msgstr ""
+
+#: app/templates/auth/reset_token.html:18
+msgid "Yeni Şifre"
+msgstr ""
+
+#: app/templates/auth/reset_token.html:24
+msgid "Şifremi Güncelle"
+msgstr ""
+
+#: app/templates/main/errors.html:12
+msgid "Ups! Bir şeyler ters gitti."
+msgstr ""
+
+#: app/templates/main/errors.html:18
+msgid "Anasayfa"
+msgstr ""
+
+#: app/templates/main/errors.html:22
+msgid "Panelime Git"
+msgstr ""
+
+#: app/templates/main/index.html:3
+msgid "Yapay Zeka Destekli Planlayıcı"
+msgstr ""
+
+#: app/templates/main/index.html:11
+msgid "Yapay Zeka Destekli Akıllı Zaman Yönetimi"
+msgstr ""
+
+#: app/templates/main/index.html:14
+msgid "Zamanınızı"
+msgstr ""
+
+#: app/templates/main/index.html:14
+msgid "Yapay Zeka"
+msgstr ""
+
+#: app/templates/main/index.html:14
+msgid "ile Yeniden Şekillendirin"
+msgstr ""
+
+#: app/templates/main/index.html:17
+msgid ""
+"Spagetti kodlardan arınmış, modüler Flask mimarisiyle geliştirilmiş; "
+"çakışma analizleri ve kişiselleştirilmiş verimlilik önerileri sunan dönem"
+" projesi."
+msgstr ""
+
+#: app/templates/main/index.html:20
+msgid "Hemen Ücretsiz Başla"
+msgstr ""
+
+#: app/templates/main/index.html:31
+msgid "AI Zaman Asistanı"
+msgstr ""
+
+#: app/templates/main/index.html:33
+msgid "AKTİF"
+msgstr ""
+
+#: app/templates/main/index.html:38
+msgid "Dönem Projesi Teslimi"
+msgstr ""
+
+#: app/templates/main/index.html:45
+msgid " Flask Uygulamasını Sun"
+msgstr ""
+
+#: app/templates/main/index.html:53
+msgid "Yapay Zeka Uyarısı:"
+msgstr ""
+
+#: app/templates/main/index.html:54
+msgid ""
+"Zamanlama planınızda herhangi bir çakışma bulunmamaktadır. Günlük "
+"hedeflerinize ulaşmak için hazırsınız!"
+msgstr ""
+
+#: app/templates/main/profile.html:22
+msgid "Profil Fotoğrafını Değiştir"
+msgstr ""
+
+#: app/templates/main/profile.html:26
+msgid "Fotoğraf Seç"
+msgstr ""
+
+#: app/templates/main/profile.html:29
+msgid "Dosya seçilmedi"
+msgstr ""
+
+#: app/templates/main/profile.html:31
+msgid "Desteklenen formatlar: PNG, JPG, JPEG, GIF (Maks. 2MB)"
+msgstr ""
+
+#: app/templates/main/profile.html:54
+msgid "Değişiklikleri Kaydet"
+msgstr ""
+
+#: app/templates/tasks/ai_planner.html:9
+msgid "AI Akıllı Planlayıcı"
+msgstr ""
+
+#: app/templates/tasks/ai_planner.html:10
+msgid "Yapay zeka tarafından üretilen zaman analizi ve verimlilik önerileri."
+msgstr ""
+
+#: app/templates/tasks/ai_planner.html:13
+msgid "Panele Geri Dön"
+msgstr ""
+
+#: app/templates/tasks/ai_planner.html:15
+msgid "Analizi Yenile"
+msgstr ""
+
+#: app/templates/tasks/ai_planner.html:26
+msgid "Yapay Zeka Analiz Raporu"
+msgstr ""
+
+#: app/templates/tasks/ai_planner.html:37
+msgid "Oluşturulma Zamanı:"
+msgstr ""
+
+#: app/templates/tasks/ai_planner.html:42
+msgid "Henüz Bir Rapor Yok"
+msgstr ""
+
+#: app/templates/tasks/ai_planner.html:43
+msgid ""
+"Zaman planınızı optimize etmek ve çakışma raporu almak için lütfen "
+"analizi başlatın."
+msgstr ""
+
+#: app/templates/tasks/ai_planner.html:54
+msgid "Akıllı Öncelik Sıralaması"
+msgstr ""
+
+#: app/templates/tasks/ai_planner.html:57
+msgid ""
+"Görevleriniz, yapay zekanın önerdiği şekilde periyot, öncelik derecesi ve"
+" saat baz alınarak verimlilik odaklı sıralanmıştır."
+msgstr ""
+
+#: app/templates/tasks/ai_planner.html:81
+#: app/templates/tasks/dashboard.html:145
+msgid "Yüksek Öncelik"
+msgstr ""
+
+#: app/templates/tasks/ai_planner.html:83
+#: app/templates/tasks/dashboard.html:147
+msgid "Orta Öncelik"
+msgstr ""
+
+#: app/templates/tasks/ai_planner.html:85
+#: app/templates/tasks/dashboard.html:149
+msgid "Düşük Öncelik"
+msgstr ""
+
+#: app/templates/tasks/ai_planner.html:94
+msgid "Görev Tanımlanmamış"
+msgstr ""
+
+#: app/templates/tasks/ai_planner.html:95
+msgid "Öncelik sıralaması görebilmek için önce görevlerinizi ekleyin."
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:3
+msgid "Görev Paneli"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:10
+msgid "Zaman Çizelgeniz"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:11
+msgid "Günlük, haftalık ve aylık planlarınızı akıllıca yönetin."
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:17
+msgid "Görevlerde arayın..."
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:21
+msgid "Ara"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:34
+msgid "Yeni Görev Ekle"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:39
+msgid "Görev Başlığı"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:40
+msgid "örn. Python Projesi Hazırla"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:43
+msgid "Açıklama"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:44
+msgid "Görev detaylarını buraya yazın..."
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:48
+msgid "Periyot"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:50 app/templates/tasks/dashboard.html:99
+msgid "Günlük"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:51 app/templates/tasks/dashboard.html:100
+msgid "Haftalık"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:52 app/templates/tasks/dashboard.html:101
+msgid "Aylık"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:56
+msgid "Öncelik"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:58 app/templates/tasks/dashboard.html:108
+msgid "Yüksek"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:59 app/templates/tasks/dashboard.html:109
+msgid "Orta"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:60 app/templates/tasks/dashboard.html:110
+msgid "Düşük"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:66
+msgid "Başlangıç"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:70
+msgid "Bitiş"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:74
+msgid "Planla ve Ekle"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:83
+msgid "Yapay Zeka Analizi"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:84
+msgid ""
+"Görev çakışmalarını tespit edin, önceliklerinize göre optimize edilmiş "
+"programınızı yapay zeka ile hemen oluşturun."
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:86
+msgid "Planı Optimize Et"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:98 app/templates/tasks/dashboard.html:107
+msgid "Tümü"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:105
+msgid "Öncelik:"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:157
+msgid "Bu görevi silmek istediğinize emin misiniz?"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:168
+msgid "Burada henüz bir görev yok"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:169
+msgid "Yeni planlar yapmak için sol paneldeki görev formunu kullanabilirsiniz."
+msgstr ""
+

@@ -1,0 +1,240 @@
+/* Zaman ve Görev Yönetimi Uygulaması - Premium Dark Glassmorphism CSS */
+
+:root {
+    --bg-color: #0d0e14;
+    --card-bg: rgba(22, 24, 38, 0.6);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --primary-color: #6366f1;
+    --primary-glow: rgba(99, 102, 241, 0.15);
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --sidebar-bg: rgba(13, 14, 20, 0.85);
+    
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.08) 0px, transparent 50%);
+    background-attachment: fixed;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+/* Navigasyon Stilleri */
+.navbar {
+    background-color: rgba(13, 14, 20, 0.7) !important;
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.8rem 0;
+}
+
+.nav-link {
+    color: var(--text-secondary) !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem !important;
+    border-radius: 0.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-link:hover, .nav-link.active {
+    color: #fff !important;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Kart Tasarımları (Glassmorphism) */
+.card, .glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    color: var(--text-primary);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 12px 40px 0 rgba(99, 102, 241, 0.12);
+}
+
+.card-header {
+    background-color: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem;
+}
+
+/* Buton Stilleri */
+.btn {
+    border-radius: 0.75rem;
+    font-weight: 600;
+    padding: 0.6rem 1.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 14px 0 var(--primary-glow);
+}
+
+.btn-primary:hover {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px 0 var(--primary-glow);
+}
+
+.btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+
+/* Dropdown Menüler */
+.dropdown-menu {
+    background-color: rgba(20, 22, 34, 0.95) !important;
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+}
+
+.dropdown-item, .dropdown-menu-item {
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: block;
+    color: var(--text-primary);
+}
+
+.dropdown-item:hover, .dropdown-menu-item:hover {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    color: #fff !important;
+}
+
+/* Form Elemanları */
+.form-control, .form-select {
+    background-color: rgba(13, 14, 20, 0.5);
+    border: 1px solid var(--border-color);
+    color: #fff;
+    border-radius: 0.75rem;
+    padding: 0.65rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: rgba(13, 14, 20, 0.8);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px var(--primary-glow);
+    color: #fff;
+}
+
+.form-control::placeholder {
+    color: #4b5563;
+}
+
+/* Görev Kartları ve Listeleri */
+.task-item {
+    border-left: 4px solid var(--primary-color);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 0.85rem;
+    transition: all 0.25s ease;
+    border-top: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.task-item:hover {
+    transform: translateX(4px);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.task-item.priority-High {
+    border-left-color: var(--danger-color);
+}
+
+.task-item.priority-Medium {
+    border-left-color: var(--warning-color);
+}
+
+.task-item.priority-Low {
+    border-left-color: var(--success-color);
+}
+
+.task-item.completed {
+    opacity: 0.65;
+    border-left-color: var(--text-secondary);
+}
+
+.task-item.completed .task-title {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+}
+
+/* Custom Text and Icons */
+.text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+.fs-7 {
+    font-size: 0.85rem;
+}
+
+.fs-8 {
+    font-size: 0.75rem;
+}
+
+/* Profil Avatar Düzenlemeleri */
+.avatar-wrapper {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--primary-color);
+    box-shadow: 0 0 20px var(--primary-glow);
+}
+
+.avatar-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Hata Sayfaları */
+.error-template {
+    padding: 40px 15px;
+    text-align: center;
+}
+
+.error-actions {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+/* Zamanlama Animasyonu */
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
+    50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.6); }
+    100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
+}
+
+.ai-glow-card {
+    animation: pulseGlow 3s infinite;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+}

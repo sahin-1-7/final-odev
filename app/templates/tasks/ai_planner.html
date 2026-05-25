@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ _('Yapay Zeka Planlayıcı') }} - {{ _('Zaman & Görev Yöneticisi') }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row align-items-center mb-4">
+        <div class="col-md-6">
+            <h2 class="fw-bold m-0 text-white"><i class="bi bi-cpu-fill text-info me-2 animate-pulse"></i>{{ _('AI Akıllı Planlayıcı') }}</h2>
+            <p class="text-secondary m-0">{{ _('Yapay zeka tarafından üretilen zaman analizi ve verimlilik önerileri.') }}</p>
+        </div>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <a href="{{ url_for('tasks.dashboard') }}" class="btn btn-outline-light rounded-pill"><i class="bi bi-arrow-left me-1"></i>{{ _('Panele Geri Dön') }}</a>
+            <form method="POST" action="{{ url_for('tasks.ai_optimize') }}" class="d-inline-block ms-2">
+                <button type="submit" class="btn btn-primary rounded-pill"><i class="bi bi-arrow-clockwise me-1"></i>{{ _('Analizi Yenile') }}</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Sol Panel: AI Analiz Raporu -->
+        <div class="col-lg-7">
+            <div class="card border-0 ai-glow-card h-100">
+                <div class="card-header border-0 py-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-journal-text text-info fs-5"></i>
+                    <h5 class="fw-bold m-0 text-white">{{ _('Yapay Zeka Analiz Raporu') }}</h5>
+                </div>
+                <div class="card-body p-4 pt-2">
+                    {% if suggestion %}
+                        <!-- Gizli ham metin -->
+                        <textarea id="suggestion-raw" class="d-none">{{ suggestion.suggestion_text }}</textarea>
+                        <!-- Biçimlendirilmiş HTML Çıktısı -->
+                        <div id="suggestion-rendered" class="suggestion-content">
+                            <!-- JS ile render edilecek -->
+                        </div>
+                        <div class="text-secondary fs-8 mt-4 pt-3 border-top border-secondary">
+                            <i class="bi bi-clock me-1"></i>{{ _('Oluşturulma Zamanı:') }} {{ suggestion.created_at.strftime('%d.%m.%Y %H:%M') }}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-cpu text-secondary fs-1 d-block mb-3"></i>
+                            <h5 class="fw-semibold text-white">{{ _('Henüz Bir Rapor Yok') }}</h5>
+                            <p class="text-secondary small">{{ _('Zaman planınızı optimize etmek ve çakışma raporu almak için lütfen analizi başlatın.') }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ Panel: AI Sıralı Akıllı Görev Listesi -->
+        <div class="col-lg-5">
+            <div class="card border-0 h-100">
+                <div class="card-header border-0 py-3">
+                    <h5 class="fw-bold m-0 text-white"><i class="bi bi-sort-down text-primary me-2"></i>{{ _('Akıllı Öncelik Sıralaması') }}</h5>
+                </div>
+                <div class="card-body p-4 pt-2">
+                    <p class="text-secondary small mb-4">{{ _('Görevleriniz, yapay zekanın önerdiği şekilde periyot, öncelik derecesi ve saat baz alınarak verimlilik odaklı sıralanmıştır.') }}</p>
+                    
+                    {% if tasks %}
+                        <div class="ai-task-sequence">
+                            {% for task in tasks %}
+                                <div class="task-item priority-{{ task.priority }} {% if task.is_completed %}completed{% endif %} p-3 mb-2.5">
+                                    <div class="d-flex justify-content-between align-items-center gap-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="fs-7">
+                                                {% if task.is_completed %}
+                                                    ✅
+                                                {% else %}
+                                                    ⏳
+                                                {% endif %}
+                                            </span>
+                                            <span class="fw-bold text-white fs-7">{{ task.title }}</span>
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary fs-8 px-2 py-1">{{ task.period | upper }}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 mt-2 text-secondary fs-7">
+                                        <i class="bi bi-clock"></i>
+                                        <span>{{ task.start_time }} - {{ task.end_time }}</span>
+                                        <span class="mx-1">&bull;</span>
+                                        {% if task.priority == 'High' %}
+                                            <span class="text-danger fw-semibold">{{ _('Yüksek Öncelik') }}</span>
+                                        {% elif task.priority == 'Medium' %}
+                                            <span class="text-warning fw-semibold">{{ _('Orta Öncelik') }}</span>
+                                        {% else %}
+                                            <span class="text-success fw-semibold">{{ _('Düşük Öncelik') }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox text-secondary fs-1 d-block mb-3"></i>
+                            <h5 class="fw-semibold text-white">{{ _('Görev Tanımlanmamış') }}</h5>
+                            <p class="text-secondary small">{{ _('Öncelik sıralaması görebilmek için önce görevlerinizi ekleyin.') }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const rawTextEl = document.getElementById('suggestion-raw');
+    const renderEl = document.getElementById('suggestion-rendered');
+    if (rawTextEl && renderEl) {
+        const rawText = rawTextEl.value;
+        
+        // Basit ve kararlı bir Markdown -> HTML Çevirici
+        let lines = rawText.split('\n');
+        let htmlOutput = '';
+        let inList = false;
+        
+        lines.forEach(line => {
+            let trimmed = line.trim();
+            
+            // Başlıklar (###)
+            if (trimmed.startsWith('###')) {
+                if (inList) { htmlOutput += '</ul>'; inList = false; }
+                const title = trimmed.replace(/^###\s+/, '');
+                htmlOutput += `<h5 class="fw-bold text-white mt-4 mb-3 pb-2 border-bottom border-secondary d-flex align-items-center gap-2"><i class="bi bi-stars text-info animate-pulse"></i> ${title}</h5>`;
+            }
+            // Liste Öğeleri (- veya *)
+            else if (trimmed.startsWith('-') || trimmed.startsWith('*')) {
+                if (!inList) { htmlOutput += '<ul class="list-unstyled ps-0">'; inList = true; }
+                let itemText = trimmed.replace(/^[-*]\s+/, '');
+                // Bolding ve em içindekileri dönüştür
+                itemText = parseInlineMarkdown(itemText);
+                htmlOutput += `<li class="d-flex align-items-start gap-2 mb-2.5 text-secondary"><i class="bi bi-arrow-right-short text-info fs-5 lh-1"></i> <div>${itemText}</div></li>`;
+            }
+            // Düz Paragraflar veya diğer yapılar
+            else if (trimmed.length > 0) {
+                if (inList) { htmlOutput += '</ul>'; inList = false; }
+                let paraText = parseInlineMarkdown(trimmed);
+                htmlOutput += `<p class="text-secondary lh-lg mb-3">${paraText}</p>`;
+            }
+        });
+        
+        if (inList) { htmlOutput += '</ul>'; }
+        renderEl.innerHTML = htmlOutput;
+    }
+    
+    function parseInlineMarkdown(text) {
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white fw-bold">$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em class="text-light">$1</em>');
+    }
+});
+</script>
+{% endblock %}

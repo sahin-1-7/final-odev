@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ _('Kayıt Ol') }} - {{ _('Zaman & Görev Yöneticisi') }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header border-0 py-4 text-center">
+                    <i class="bi bi-person-plus-fill text-primary fs-1 mb-2"></i>
+                    <h3 class="fw-bold m-0 text-white">{{ _('Yeni Hesap Oluştur') }}</h3>
+                    <p class="text-secondary small m-0 mt-1">{{ _('Kullanmaya başlamak için kaydolun.') }}</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('auth.register') }}">
+                        <div class="mb-3">
+                            <label for="username" class="form-label text-secondary fs-7 fw-semibold">{{ _('Kullanıcı Adı') }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary border-end-0 text-secondary"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control border-secondary border-start-0 ps-0" id="username" name="username" placeholder="{{ _('kullanici_adi') }}" required autocomplete="username">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label text-secondary fs-7 fw-semibold">{{ _('E-posta Adresi') }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary border-end-0 text-secondary"><i class="bi bi-envelope"></i></span>
+                                <input type="email" class="form-control border-secondary border-start-0 ps-0" id="email" name="email" placeholder="ornek@domain.com" required autocomplete="email">
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="password" class="form-label text-secondary fs-7 fw-semibold">{{ _('Şifre') }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary border-end-0 text-secondary"><i class="bi bi-key"></i></span>
+                                <input type="password" class="form-control border-secondary border-start-0 ps-0" id="password" name="password" placeholder="••••••••" required autocomplete="new-password">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-3 mb-3">{{ _('Hesap Oluştur') }}</button>
+                        
+                        <div class="text-center">
+                            <span class="text-secondary fs-7">{{ _('Zaten üye misiniz?') }}</span>
+                            <a href="{{ url_for('auth.login') }}" class="text-primary text-decoration-none fs-7 fw-semibold">{{ _('Giriş Yapın') }}</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
