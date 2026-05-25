@@ -65,7 +65,8 @@ final ödev/
 │   ├── ai_engine.py            # Akıllı Zaman Çakışması ve AI Analiz Motoru
 │   ├── config.py               # Çevre Değişkenleri ve Konfigürasyonlar
 │   ├── extensions.py           # Eklenti Nesnelerinin Tanımları (db, migrate, babel)
-│   └── models.py               # Veritabanı Tablo Yapıları (Modeller)
+│   ├── models.py               # Veritabanı Tablo Yapıları (Modeller)
+│   └── utils.py                # Merkezi Yardımcı Fonksiyonlar (E-posta, Token ve Saat Hesaplama)
 │
 ├── instance/                   # SQLite Veritabanı Dosyasının Tutulduğu Yer
 ├── migrations/                 # Veritabanı Göç Geçmişi
@@ -144,6 +145,10 @@ erDiagram
 * **Zaman Çakışması Algoritması:** Sistem, kullanıcının eklediği görevlerin saatlerini analiz eder. Eğer aynı periyotta yer alan iki görevin saat aralıkları çakışıyorsa (Örn: 10:00-11:00 arası spor ve 10:30-12:00 arası toplantı), sistem bunu anında bulur ve kullanıcıyı uyarır.
 * **Akıllı Öncelik Sıralaması:** Görevler, AI motoru tarafından öncelik ağırlıklarına göre (Yüksek > Orta > Düşük) ve başlangıç saatlerine göre sıralanarak optimize edilmiş bir zaman çizelgesi haline getirilir.
 * **Kişiselleştirilmiş Öneriler:** Kullanıcının iş yükü analiz edilerek (örneğin günde 3'ten fazla yüksek öncelikli iş varsa 80/20 kuralı önerisi vb.) dinamik ve bilimsel verimlilik tavsiyeleri sunulur.
+
+### 🧹 Temiz Kod (Clean Code) ve Merkezi Mimari
+* **Merkezi Modül Entegrasyonu:** Kod tekrarını sıfırlamak ve sürdürülebilirliği artırmak amacıyla `app/utils.py` dosyası projeye entegre edilmiştir. 
+* **Dosya Görev Bölüşümü:** Şifre sıfırlama token doğrulamaları, e-posta oluşturma mantığı (`send_reset_email`) ve zaman dönüştürme araçları (`parse_time_to_minutes`) tek bir merkezde toplanarak Blueprint rotalarındaki karmaşıklık giderilmiştir.
 
 ---
 

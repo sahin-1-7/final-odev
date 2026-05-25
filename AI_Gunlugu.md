@@ -39,6 +39,10 @@ Bu günlük, **Akıllı Görev ve Zaman Yönetim Sistemi** projesinin geliştiri
 * **Yapılan İşler:** Uygulamanın Türkçe ve İngilizce dillerinde tam uyumlu çalışması için `Flask-Babel` entegrasyonu yapıldı. Arayüz için göz yormayan, modern ve şık bir koyu tema (dark-theme) tasarımı uygulandı.
 * **AI Katkısı:** Babel konfigürasyonu (`babel.cfg`), `.pot` ve `.po` çeviri dosyalarının derlenmesi için gerekli CLI komutları ve session tabanlı dil seçici fonksiyonu AI rehberliğinde yazıldı.
 
+### 🔹 Aşama 7: Kod İyileştirme (Refactoring) & Merkezi Mimari Kurulumu
+* **Yapılan İşler:** Kod kalitesini artırmak ve kod tekrarlarını engellemek amacıyla merkezi yardımcı modül mimarisine geçiş yapıldı. `app/utils.py` oluşturuldu. Rotalardaki (`auth/routes.py`, `tasks/routes.py`, `ai_engine.py`) yinelenen yardımcı fonksiyonlar (şifre sıfırlama e-postası, saat dakika dönüştürücüler vb.) bu merkezde toplandı.
+* **AI Katkısı:** AI ile yapılan planlama doğrultusunda, çalışan sistem fonksiyonlarına en ufak bir zarar verilmeden kodlar başarıyla refaktör edildi. Dairesel bağımlılık yaratmayan merkezi içe aktarım (import) sistemi kuruldu.
+
 ---
 
 ## 💡 Yapay Zeka Prompt Mühendisliği ve İş Birliği Örnekleri
@@ -58,6 +62,7 @@ Bu günlük, **Akıllı Görev ve Zaman Yönetim Sistemi** projesinin geliştiri
 1. **UAC İzin Hataları (Windows):** Git kurulumu esnasında Windows Yönetici izin talebi nedeniyle kurulumun yarıda kalma riski oluştu. AI, beni uyararak ekrandaki yönetici iznine onay vermemi sağladı ve kurulumun başarıyla tamamlanmasına rehberlik etti.
 2. **Çeviri Derleme Sorunu:** Çeviri dosyaları (.po) oluşturulduktan sonra uygulamanın bunları okuyamaması sorunu yaşandı. AI, `.po` dosyalarının ikili (binary) `.mo` dosyalarına derlenmesi gerektiğini hatırlatarak `pybabel compile` komutlarının doğru çalıştırılmasını sağladı.
 3. **Zaman Dilimi Karşılaştırmaları:** Görevlerin oluşturulma tarihlerinin yerel zaman ile sunucu zamanı arasında fark göstermesi. AI önerisiyle tüm veritabanı zaman damgaları `datetime.utcnow` standardına çekildi ve istemci tarafında yerel saate dönüştürüldü.
+4. **Eksik Python Bağımlılıkları ve Canlı Doğrulama:** Geliştirici python ortamında `python-dotenv` ve `Flask-Mail` gibi kritik bağımlılıkların eksik olmasından ötürü başlatma hatası alındı. AI asistanının yönlendirmesiyle, `requirements.txt` dosyasındaki tüm paket sürümleri `pip install -r requirements.txt` komutuyla sisteme kuruldu, dairesel bağımlılık içermeyen temiz bir çalışma ortamı sağlanarak Flask sunucusu yerel olarak başarıyla doğrulandı.
 
 ---
 
