@@ -1,14 +1,7 @@
 import os
 import re
 from datetime import datetime
-
-def parse_time_to_minutes(time_str):
-    """'HH:MM' formatındaki saati gece yarısından itibaren dakikaya çevirir."""
-    try:
-        hours, minutes = map(int, time_str.split(':'))
-        return hours * 60 + minutes
-    except Exception:
-        return 0
+from app.utils import parse_time_to_minutes
 
 def check_overlap(task1, task2):
     """İki görevin saat aralıklarının çakışıp çakışmadığını kontrol eder."""

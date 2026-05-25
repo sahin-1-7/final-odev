@@ -3,7 +3,8 @@ from flask_login import login_required, current_user
 from app.blueprints.tasks import tasks_bp
 from app.extensions import db
 from app.models import Task, AISuggestion
-from app.ai_engine import analyze_and_optimize_tasks, parse_time_to_minutes
+from app.ai_engine import analyze_and_optimize_tasks
+from app.utils import parse_time_to_minutes
 
 @tasks_bp.route('/dashboard')
 @login_required
