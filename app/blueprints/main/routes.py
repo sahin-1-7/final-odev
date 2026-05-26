@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 from app.blueprints.main import main_bp
 from app.extensions import db
 from app.models import User
+from app.utils import save_secure_avatar
 
 def allowed_file(filename):
     """Dosya uzantısının izin verilen listede olup olmadığını kontrol eder."""
@@ -43,23 +44,30 @@ def profile():
         current_user.username = username
         current_user.email = email
         
-        # Avatar Resim Yükleme Kontrolü (Bonus Özellik +4 Puan)
+        # Avatar Resim Yükleme Kontrolü (Güvenlik Odaklı +4 Puan)
         if avatar_file and avatar_file.filename != '':
-            if allowed_file(avatar_file.filename):
-                # secure_filename ile güvenlik kontrolü yapılıyor
-                original_filename = secure_filename(avatar_file.filename)
-                ext = original_filename.rsplit('.', 1)[1].lower()
-                
-                # Kullanıcıya özel benzersiz dosya adı oluşturulması çakışmaları ve güvenlik açıklarını önler
-                filename = f"avatar_{current_user.id}_{int(os.path.getmtime(current_app.config['UPLOAD_FOLDER'])) if os.path.exists(current_app.config['UPLOAD_FOLDER']) else 1}.{ext}"
-                filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-                
-                avatar_file.save(filepath)
-                current_user.avatar = filename
-                flash('Profil fotoğrafınız başarıyla güncellendi!', 'success')
-            else:
-                flash('Desteklenmeyen dosya formatı. İzin verilenler: PNG, JPG, JPEG, GIF', 'danger')
+            # Güvenli kaydetme ve doğrulama fonksiyonunu çağırıyoruz
+            filename, error = save_secure_avatar(
+                avatar_file=avatar_file,
+                upload_folder=current_app.config['UPLOAD_FOLDER'],
+                user_id=current_user.id
+            )
+            
+            if error:
+                flash(error, 'danger')
                 return redirect(url_for('main.profile'))
+                
+            # Eğer yükleme başarılıysa ve kullanıcının eski avatarı varsayılandan farklıysa eskiyi temizliyoruz
+            if current_user.avatar and current_user.avatar != 'default_avatar.png':
+                old_avatar_path = os.path.join(current_app.config['UPLOAD_FOLDER'], current_user.avatar)
+                if os.path.exists(old_avatar_path):
+                    try:
+                        os.remove(old_avatar_path)
+                    except Exception:
+                        pass # Silme sırasında oluşabilecek bir kilitlenme hatası işlemi durdurmamalı
+                        
+            current_user.avatar = filename
+            flash('Profil fotoğrafınız başarıyla güncellendi!', 'success')
                 
         db.session.commit()
         flash('Profil bilgileriniz başarıyla güncellendi!', 'success')

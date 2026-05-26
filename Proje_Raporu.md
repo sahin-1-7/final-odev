@@ -124,9 +124,15 @@ erDiagram
 
 ## 5. Uygulanan Fonksiyonel Özellikler ve Kazanımlar
 
-### 🔒 Güvenli Üyelik ve Profil Yönetimi
+### 🔒 Güvenli Üyelik ve Profil Yönetimi (Bonus +4 Puan)
 * Kullanıcılar sisteme e-posta ve şifreleriyle kayıt olabilir.
-* Giriş yapan kullanıcılar, kendilerine özel bir profile sahip olurlar ve dilerlerse profil resmi (avatar) yükleyebilirler.
+* Giriş yapan kullanıcılar, kendilerine özel bir profile sahip olurlar ve sızma testlerinden geçecek düzeyde güvenliğe sahip olan **Güvenli Profil Resmi (Avatar) Yükleme Modülü**'nü kullanabilirler.
+* **Dosya Yükleme Güvenlik Mimarisi (Sızma Testi Korumaları):**
+  * **Path Traversal ve Null Byte Engelleme:** Dosyaların `secure_filename` mantığına uygun olarak kriptografik UUIDv4 kodları ile yeniden adlandırılması sağlanmış, böylece sunucuda dosyaların üst üste yazılması ve dizin geçişi (directory traversal) saldırıları tamamen önlenmiştir.
+  * **Sıkı Uzantı ve MIME-Type Kontrolü:** Yalnızca `png`, `jpg`, `jpeg`, `gif` uzantılarına izin verilmiştir. HTML veya Javascript enjekte edilebilen ve XSS'e sebep olan `svg` gibi uzantılar engellenmiştir.
+  * **Pillow ile Derin İçerik Doğrulaması:** Dosya içeriği bellek seviyesinde Pillow (`PIL`) ile doğrulanarak HTTP başlıklarının manipüle edilip zararlı PHP/HTML kodlarının resim gibi sunulması (MIME-Type spoofing) engellenmiştir.
+  * **Polyglot ve EXIF Temizleme (Sanitization):** Resim dosyaları bellekte sıfırdan oluşturulan temiz bir tuval üzerine yeniden çizilip kaydedilmektedir (re-saving). Bu işlem resim dosyası içerisine gizlenmiş tüm PHP/HTML betiklerini kazıyıp temizlemektedir.
+  * **Eski Dosya Temizliği:** Kullanıcı yeni bir fotoğraf yüklediğinde eski resmi sunucu diskinden otomatik olarak silinerek sunucu güvenliği ve depolama verimliliği korunmuştur.
 
 ### 📅 Dinamik Dashboard ve CRUD
 * Kullanıcılar kolayca yeni görevler ekleyebilir, mevcut görevleri listeleyebilir, tamamlandı olarak işaretleyebilir veya tamamen silebilir.

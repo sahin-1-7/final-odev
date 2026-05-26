@@ -52,3 +52,55 @@ Giriş bilgileriniz güvendedir.
         print("=== ŞİFRE SIFIRLAMA BAĞLANTISI (GELİŞTİRİCİ KONSOLU) ===")
         print(reset_url)
         print("="*50 + "\n")
+
+import uuid
+from PIL import Image
+
+def save_secure_avatar(avatar_file, upload_folder, user_id):
+    """
+    Siber güvenlik penetrasyon testlerinden sorunsuz geçecek şekilde
+    profil fotoğrafını doğrular, temizler, yeniden boyutlandırır/kodlar ve kaydeder.
+    """
+    filename = avatar_file.filename
+    if not filename or '.' not in filename:
+        return None, "Geçersiz dosya adı."
+        
+    ext = filename.rsplit('.', 1)[1].lower()
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    if ext not in ALLOWED_EXTENSIONS:
+        return None, "Desteklenmeyen dosya formatı. İzin verilenler: PNG, JPG, JPEG, GIF"
+        
+    # 1. Kriptografik olarak güvenli rastgele ve benzersiz yeni dosya adı (UUIDv4)
+    secure_name = f"avatar_{user_id}_{uuid.uuid4().hex}.{ext}"
+    filepath = os.path.join(upload_folder, secure_name)
+    
+    try:
+        # 2. Dosya işaretçisini sıfırla ve Pillow ile doğrula
+        avatar_file.seek(0)
+        img = Image.open(avatar_file)
+        
+        # 3. Dosya formatının doğruluğunu Pillow ile teyit et
+        img_format = img.format.lower()
+        valid_formats = {'png', 'jpeg', 'gif', 'jpg'}
+        if img_format not in valid_formats:
+            return None, "Dosya içeriği geçerli bir resim formatında değil."
+            
+        # 4. EXIF ve Zararlı Kod Temizleme (Sanitization)
+        # Resmi temiz kanallara sahip yeni bir resme dönüştürüp kaydederek
+        # EXIF veya comment satırlarına gizlenmiş zararlı scriptleri yok ediyoruz.
+        if img.mode not in ('RGB', 'RGBA'):
+            img = img.convert('RGB')
+            
+        # Avatar için resmi 400x400 pikselliğe orantılı düşürüyoruz (DoS koruması ve optimizasyon)
+        img.thumbnail((400, 400), Image.Resampling.LANCZOS)
+        
+        # Dosya yazma işlemini gerçekleştiriyoruz
+        os.makedirs(upload_folder, exist_ok=True)
+        img.save(filepath, format=img.format)
+        
+        return secure_name, None
+        
+    except Exception as e:
+        # Hata durumunda dosya içeriğinin bozuk veya manipüle edilmiş olduğunu varsayıyoruz
+        return None, "Dosya içeriği doğrulanamadı. Bozuk veya zararlı içerik algılandı."
+

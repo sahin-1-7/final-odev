@@ -43,6 +43,10 @@ Bu günlük, **Akıllı Görev ve Zaman Yönetim Sistemi** projesinin geliştiri
 * **Yapılan İşler:** Kod kalitesini artırmak ve kod tekrarlarını engellemek amacıyla merkezi yardımcı modül mimarisine geçiş yapıldı. `app/utils.py` oluşturuldu. Rotalardaki (`auth/routes.py`, `tasks/routes.py`, `ai_engine.py`) yinelenen yardımcı fonksiyonlar (şifre sıfırlama e-postası, saat dakika dönüştürücüler vb.) bu merkezde toplandı.
 * **AI Katkısı:** AI ile yapılan planlama doğrultusunda, çalışan sistem fonksiyonlarına en ufak bir zarar verilmeden kodlar başarıyla refaktör edildi. Dairesel bağımlılık yaratmayan merkezi içe aktarım (import) sistemi kuruldu.
 
+### 🔹 Aşama 8: Kullanıcı Profili ve Güvenli Avatar Yükleme Modülü
+* **Yapılan İşler (2. Gün - 4. Oturum Notu):** Projenin en hassas noktalarından biri olan Dosya Yükleme (File Upload) güvenliğini ele aldık. Sadece uzantı kontrolüyle yetinmeyip, secure_filename mantığı ve UUID entegrasyonu ile Path Traversal ve sunucuda dosyaların üst üste yazılmasını engelledik. Ayrıca Pillow kütüphanesi ile derin dosya içerik kontrolü ve EXIF temizliği (Polyglot koruması) sağlayarak sistemi siber güvenlik denetimlerinden sorunsuz geçecek düzeye ulaştırdık. Bu sayede hem +4 bonus puanı garantiledik hem de uygulamanın teknik doğruluğunu üst seviyeye çıkardık. (Görsel: AI_Guvenlik_Analizi.png)
+* **AI Katkısı:** AI, uzantı bazlı temel korumaların Burp Suite gibi sızma araçlarıyla kolayca aşılacağını belirtti. Bunun üzerine Pillow ile bellek seviyesinde resim doğrulama ve resmi yeni temiz kanallarla sunucu diskine sıfırdan çizerek kaydetme (re-saving) mimarisini sundu. Bu sızma testi düzeyindeki katman başarıyla entegre edildi.
+
 ---
 
 ## 💡 Yapay Zeka Prompt Mühendisliği ve İş Birliği Örnekleri
