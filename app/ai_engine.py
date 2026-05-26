@@ -48,7 +48,10 @@ def get_gemini_suggestion(tasks_data):
             res_data = json.loads(response.read().decode('utf-8'))
             return res_data['candidates'][0]['content']['parts'][0]['text']
     except Exception as e:
-        print(f"[GEMINI API HATA] Yapay zeka motoru çağrılamadı, kural tabanlı motora geçiliyor: {e}")
+        error_msg = str(e)
+        if api_key in error_msg:
+            error_msg = error_msg.replace(api_key, "MASKED_KEY")
+        print(f"[GEMINI API HATA] Yapay zeka motoru çağrılamadı, kural tabanlı motora geçiliyor: {error_msg}")
         return None
 
 def get_gemini_chat_response(user_message, chat_history_list, tasks_data):
@@ -101,7 +104,10 @@ def get_gemini_chat_response(user_message, chat_history_list, tasks_data):
             res_data = json.loads(response.read().decode('utf-8'))
             return res_data['candidates'][0]['content']['parts'][0]['text']
     except Exception as e:
-        print(f"[GEMINI CHAT HATA] Sohbet motoru çağrılamadı: {e}")
+        error_msg = str(e)
+        if api_key in error_msg:
+            error_msg = error_msg.replace(api_key, "MASKED_KEY")
+        print(f"[GEMINI CHAT HATA] Sohbet motoru çağrılamadı: {error_msg}")
         return None
 
 def check_overlap(task1, task2):
