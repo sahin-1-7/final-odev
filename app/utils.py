@@ -13,17 +13,29 @@ def parse_time_to_minutes(time_str):
         return 0
 
 def get_reset_token(user, expires_sec=900):
-    """itsdangerous ile 15 dakika geçerli güvenli şifre sıfırlama token'ı üretir."""
+    """itsdangerous ile şifre hash'ini içeren tek kullanımlık, 15 dakika geçerli kriptografik güvenli token üretir."""
     s = Serializer(current_app.config['SECRET_KEY'])
-    return s.dumps({'user_id': user.id})
+    # Şifre hash'i token içeriğine dahil ediliyor (One-Time Use güvencesi)
+    return s.dumps({
+        'user_id': user.id,
+        'password_hash': user.password
+    })
 
 def verify_reset_token(token, expires_sec=900):
-    """Token'ı doğrular ve ilgili kullanıcı nesnesini döner."""
+    """Token'ı doğrular. Şifre değiştirilmişse veya süre dolmuşsa geçersiz sayar."""
     s = Serializer(current_app.config['SECRET_KEY'])
     try:
         from app.models import User
-        user_id = s.loads(token, max_age=expires_sec)['user_id']
-        return User.query.get(user_id)
+        data = s.loads(token, max_age=expires_sec)
+        user_id = data['user_id']
+        token_password_hash = data['password_hash']
+        
+        user = User.query.get(user_id)
+        # Eğer kullanıcı bulunamazsa veya veritabanındaki şifre hash'i
+        # token üretildiği zamankinden farklıysa token geçersizdir!
+        if not user or user.password != token_password_hash:
+            return None
+        return user
     except Exception:
         return None
 

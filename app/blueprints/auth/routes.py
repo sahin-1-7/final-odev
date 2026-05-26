@@ -74,14 +74,32 @@ def reset_request():
         return redirect(url_for('tasks.dashboard'))
         
     if request.method == 'POST':
+        from datetime import datetime
         email = request.form.get('email', '').strip()
         user = User.query.filter_by(email=email).first()
+        
+        # Jenerik güvenlik bildirimi (Kullanıcı tespiti saldırılarına karşı koruma)
+        success_msg = 'Eğer girdiğiniz e-posta adresi sistemimizde kayıtlı ise, şifre sıfırlama bağlantısı gönderilecektir.'
+        
         if user:
+            # Hız Sınırlama (Rate Limit) Kontrolü (120 saniye)
+            now = datetime.utcnow()
+            if user.last_reset_request_at:
+                time_diff = (now - user.last_reset_request_at).total_seconds()
+                if time_diff < 120:
+                    wait_time = int(120 - time_diff)
+                    flash(f'Çok hızlı istek gönderdiniz. Lütfen {wait_time} saniye sonra tekrar deneyin.', 'warning')
+                    return render_template('auth/reset_request.html')
+            
+            # İstek zamanını güncelle ve e-postayı gönder
+            user.last_reset_request_at = now
+            db.session.commit()
+            
             send_reset_email(user)
-            flash('Şifre sıfırlama talimatları e-posta adresinize gönderildi.', 'info')
-            return redirect(url_for('auth.login'))
-        else:
-            flash('Bu e-posta adresiyle kayıtlı bir kullanıcı bulunamadı.', 'warning')
+            
+        # Kullanıcı kayıtlı olsa da olmasa da dışarıya hep aynı jenerik başarı mesajı dönülür!
+        flash(success_msg, 'info')
+        return redirect(url_for('auth.login'))
             
     return render_template('auth/reset_request.html')
 

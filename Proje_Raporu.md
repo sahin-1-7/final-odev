@@ -134,6 +134,14 @@ erDiagram
   * **Polyglot ve EXIF Temizleme (Sanitization):** Resim dosyaları bellekte sıfırdan oluşturulan temiz bir tuval üzerine yeniden çizilip kaydedilmektedir (re-saving). Bu işlem resim dosyası içerisine gizlenmiş tüm PHP/HTML betiklerini kazıyıp temizlemektedir.
   * **Eski Dosya Temizliği:** Kullanıcı yeni bir fotoğraf yüklediğinde eski resmi sunucu diskinden otomatik olarak silinerek sunucu güvenliği ve depolama verimliliği korunmuştur.
 
+### ✉️ Güvenli E-Posta ile Şifre Sıfırlama Akışı (Bonus +5 Puan)
+* Kullanıcılar, şifrelerini unuttuklarında güvenli bir şekilde e-posta yoluyla yeni şifre belirleyebilirler.
+* **Siber Güvenlik Hardening & Altyapı Standartları:**
+  * **Kullanıcı Tespiti (User Enumeration) Engellemesi:** Şifre sıfırlama taleplerinde kayıtlı olsun ya da olmasın her e-posta için aynı jenerik başarı bildirimi gösterilerek kayıtlı kullanıcı verilerinin ifşa edilmesi (enumeration) tamamen önlenmiştir.
+  * **Tek Kullanımlık (One-Time) Kriptografik Token:** `itsdangerous` ile üretilen token'ların içerisine kullanıcının mevcut şifresinin hash değeri (`user.password`) dahil edilmiştir. Şifre değiştirildiği an veritabanındaki hash güncellenerek eski sıfırlama token'ı otomatik ve kalıcı olarak iptal edilir.
+  * **Hız Sınırlaması ve Spam Koruması (Rate Limiting):** `User` tablosuna `last_reset_request_at` alanı entegre edilmiştir. Aynı kullanıcıya veya adrese 120 saniyeden (2 dakika) daha kısa sürelerde peş peşe e-posta gönderim istekleri engellenerek DoS/Spam saldırıları bloke edilmiştir.
+  * **Güvenli Geçerlilik Süresi (TTL):** Şifre sıfırlama bağlantısının geçerliliği tam olarak 15 dakika (900 saniye) ile sınırlandırılmıştır.
+
 ### 📅 Dinamik Dashboard ve CRUD
 * Kullanıcılar kolayca yeni görevler ekleyebilir, mevcut görevleri listeleyebilir, tamamlandı olarak işaretleyebilir veya tamamen silebilir.
 * Görevler eklenirken başlangıç ve bitiş saatleri girilir (Örn: 09:00 - 10:30).

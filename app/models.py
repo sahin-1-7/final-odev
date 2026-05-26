@@ -10,6 +10,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(256), nullable=False)
     avatar = db.Column(db.String(200), default='default_avatar.png', nullable=False)
+    last_reset_request_at = db.Column(db.DateTime, nullable=True)
     
     # İlişkiler (Kullanıcı silindiğinde görevleri de silinir)
     tasks = db.relationship('Task', backref='owner', lazy=True, cascade="all, delete-orphan")

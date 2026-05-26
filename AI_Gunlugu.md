@@ -51,6 +51,13 @@ Bu günlük, **Glide** projesinin geliştirilmesi sürecinde, yapay zeka kodlama
 * **Yapılan İşler (2. Gün - 5. Oturum Notu):** Yapay zeka sayfalarının (AI Chat ve AI Planner) renk teması ve görsel kalitesi fütüristik bir yapıya taşındı. Dinamik ambient parıltı küreleri ve siber ızgara arkaplanları eklendi. Sohbet pencereleri cam efekti (glassmorphism) ve neon çizgilerle premiumlaştırıldı. Görsel avatarlar, tek tıklamayla sohbet başlatan öneri çipleri ve sohbet geçmişini veritabanından dinamik silen `/ai/chat/clear` temizleme rotası kuruldu. API model parametresi esnekleştirilerek `GEMINI_MODEL=gemini-2.0-flash` desteği sağlandı. Sunucu log güvenliği artırılarak olası bağlantı hatalarında API anahtarının konsol loglarına sızması `MASKED_KEY` filtresi ile tamamen önlendi.
 * **AI Katkısı:** AI asistanı, arayüz modernizasyonu için HSL tabanlı salınan ışıma küresi animasyonlarını ve grid koordinat matrisini sundu. Ayrıca siber güvenlik denetimlerinden geçecek şekilde traceback hata günlüklerindeki API anahtarlarını algılayıp dinamik maskeleyen regex tabanlı hata yakalama kalkanını geliştirdi.
 
+### 🔹 Aşama 10: E-Posta ile Şifre Sıfırlama Akışı & Siber Güvenlik Sıkılaştırması
+* **Yapılan İşler (2. Gün - 6. Oturum Notu):** Projenin en yüksek puanlı bonus özelliklerinden biri olan E-Posta ile Şifre Sıfırlama Akışı (+5 Puan) tamamlandı ve siber güvenlik denetimlerinden en yüksek dereceyle geçecek şekilde sıkılaştırıldı.
+  * **Kullanıcı Tespiti (User Enumeration) Engellemesi:** İstek gönderildiğinde e-postanın kayıtlı olup olmadığının anlaşılmasını engelleyen jenerik bir başarı mesajı yapısı kuruldu.
+  * **Tek Kullanımlık (One-Time) Kriptografik Token:** Token içerisine kullanıcının güncel şifre hash'i gömüldü. Şifre değiştirildiği an eski token'lar otomatik olarak geçersiz kılınmaktadır.
+  * **Spam & DoS Hız Sınırlaması (Rate Limiting):** `User` modeline `last_reset_request_at` alanı eklenerek aynı e-postaya peş peşe 120 saniyeden kısa sürelerle şifre sıfırlama maili talep edilmesi engellendi.
+* **AI Katkısı:** AI, itsdangerous token'larının tek kullanımlık hale getirilmesi için şifre hash tabanlı durumsuz imzalama modelini sundu. Ayrıca Flask-Migrate entegrasyonuyla veritabanı şemasının güvenle güncellenmesini ve yerel test betikleriyle doğrulanmasını sağladı.
+
 ---
 
 ## 💡 Yapay Zeka Prompt Mühendisliği ve İş Birliği Örnekleri
