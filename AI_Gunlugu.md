@@ -1,6 +1,6 @@
 # 🧠 Yapay Zeka (AI) Geliştirme Günlüğü
 
-Bu günlük, **Akıllı Görev ve Zaman Yönetim Sistemi** projesinin geliştirilmesi sürecinde, yapay zeka kodlama asistanı (**Gemini / Antigravity**) ile yapılan iş birliğini, sorun çözme süreçlerini ve teknik aşamaları detaylandırmak amacıyla tutulmuştur.
+Bu günlük, **Glide** projesinin geliştirilmesi sürecinde, yapay zeka kodlama asistanı (**Gemini / Antigravity**) ile yapılan iş birliğini, sorun çözme süreçlerini ve teknik aşamaları detaylandırmak amacıyla tutulmuştur.
 
 ---
 

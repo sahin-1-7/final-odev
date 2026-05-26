@@ -1,9 +1,9 @@
-# 📝 Akıllı Görev ve Zaman Yönetim Sistemi - Proje Raporu
+# 📝 Glide - Akıllı Görev ve Zaman Yönetim Sistemi - Proje Raporu
 
 ---
 
 ## 📌 Proje Tanıtımı
-* **Proje Adı:** Akıllı Görev ve Zaman Yönetim Sistemi (Smart Task Manager)
+* **Proje Adı:** Glide - Akıllı Görev ve Zaman Yönetim Sistemi (Smart Task Manager)
 * **Geliştirici:** Şahin (sahin-1-7)
 * **Amaç:** Kullanıcıların günlük, haftalık ve aylık görevlerini ekleyebileceği, arayabileceği, önem derecelerine göre listeleyebileceği ve en önemlisi **Yapay Zeka (AI) Algoritması** sayesinde zaman çakışmalarını tespit edip verimlilik önerileri alabileceği web tabanlı akıllı bir ajanda uygulaması geliştirmek.
 

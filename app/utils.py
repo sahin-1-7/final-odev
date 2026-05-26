@@ -30,7 +30,7 @@ def verify_reset_token(token, expires_sec=900):
 def send_reset_email(user):
     """Kullanıcıya şifre sıfırlama e-postası gönderir."""
     token = get_reset_token(user)
-    msg = Message('Zaman ve Görev Yöneticisi - Şifre Sıfırlama Talebi',
+    msg = Message('Glide - Şifre Sıfırlama Talebi',
                   recipients=[user.email])
     
     # E-posta içeriği
