@@ -4,10 +4,80 @@
 
 {% block styles %}
 <style>
+    /* Hareketli Ambient Işıma Küreleri */
+    .ambient-glows {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -2;
+        overflow: hidden;
+        pointer-events: none;
+    }
+    .glow-sphere {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(130px);
+        opacity: 0.12;
+        mix-blend-mode: screen;
+        animation: floatGlow 25s infinite alternate ease-in-out;
+    }
+    .glow-1 {
+        top: -10%;
+        left: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(124, 58, 237, 0.7) 0%, transparent 80%);
+    }
+    .glow-2 {
+        bottom: -10%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(6, 182, 212, 0.7) 0%, transparent 80%);
+        animation-delay: -5s;
+    }
+    .glow-3 {
+        top: 35%;
+        left: 45%;
+        width: 450px;
+        height: 450px;
+        background: radial-gradient(circle, rgba(236, 72, 153, 0.55) 0%, transparent 80%);
+        animation-delay: -10s;
+    }
+    @keyframes floatGlow {
+        0% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(70px, 50px) scale(1.08); }
+        100% { transform: translate(-30px, -40px) scale(0.95); }
+    }
+
+    /* Cyber Izgara Dokusu */
+    .cyber-grid {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1;
+        pointer-events: none;
+        background-image: 
+            linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+        background-size: 40px 40px;
+        mask-image: radial-gradient(circle, black 40%, transparent 95%);
+        -webkit-mask-image: radial-gradient(circle, black 40%, transparent 95%);
+    }
+
+    .glow-wrapper {
+        position: relative;
+    }
+
     .chat-container {
-        height: 60vh;
+        height: 52vh;
         overflow-y: auto;
-        padding-right: 8px;
+        padding-right: 12px;
+        scroll-behavior: smooth;
     }
     
     .chat-container::-webkit-scrollbar {
@@ -19,51 +89,64 @@
     }
     
     .chat-container::-webkit-scrollbar-thumb {
-        background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+    }
+    
+    .chat-container::-webkit-scrollbar-thumb:hover {
+        background: rgba(6, 182, 212, 0.45);
     }
 
+    /* Konuşma Balonları */
     .msg-bubble {
-        max-width: 75%;
-        padding: 12px 16px;
-        border-radius: 18px;
-        margin-bottom: 16px;
-        line-height: 1.6;
+        max-width: 78%;
+        padding: 14px 20px;
+        border-radius: 20px;
+        line-height: 1.7;
         font-size: 0.95rem;
+        transition: all 0.25s ease;
+        position: relative;
     }
 
     .msg-user {
-        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%);
         color: #ffffff;
-        border-bottom-right-radius: 4px;
-        align-self: flex-end;
-        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+        border-top-right-radius: 4px;
+        box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.35), 0 0 15px rgba(219, 39, 119, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
     .msg-ai {
-        background: rgba(30, 30, 40, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(10px);
+        background: rgba(22, 24, 38, 0.5);
+        border: 1px solid rgba(6, 182, 212, 0.2);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         color: #e2e8f0;
-        border-bottom-left-radius: 4px;
-        align-self: flex-start;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        border-top-left-radius: 4px;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.45), 0 0 15px rgba(6, 182, 212, 0.05);
     }
     
     .msg-ai.glowing-border {
-        border-color: rgba(6, 182, 212, 0.25);
-        box-shadow: 0 0 15px rgba(6, 182, 212, 0.05);
+        border-color: rgba(6, 182, 212, 0.35);
+        box-shadow: 0 0 20px rgba(6, 182, 212, 0.08), 0 10px 30px -5px rgba(0, 0, 0, 0.45);
+    }
+
+    /* Avatarlar */
+    .avatar-indicator {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .avatar-indicator:hover {
+        transform: scale(1.12) rotate(4deg);
     }
 
     .typing-indicator {
-        display: none;
-        align-self: flex-start;
-        background: rgba(30, 30, 40, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        padding: 14px 20px;
-        border-radius: 18px;
-        border-bottom-left-radius: 4px;
-        margin-bottom: 16px;
+        background: rgba(22, 24, 38, 0.5);
+        border: 1px solid rgba(6, 182, 212, 0.2);
+        padding: 14px 22px;
+        border-radius: 20px;
+        border-top-left-radius: 4px;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.45);
+        display: inline-block;
     }
 
     .typing-dot {
@@ -73,8 +156,8 @@
         margin: 0 4px;
         background: #06b6d4;
         border-radius: 50%;
-        opacity: 0;
-        animation: loadingFade 1s infinite;
+        opacity: 0.2;
+        animation: loadingFade 1.2s infinite ease-in-out;
     }
 
     .typing-dot:nth-child(1) { animation-delay: 0s; }
@@ -82,102 +165,196 @@
     .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
     @keyframes loadingFade {
-        0% { opacity: 0; }
-        50% { opacity: 0.8; }
-        100% { opacity: 0; }
+        0% { opacity: 0.2; }
+        50% { opacity: 1; transform: translateY(-2px); }
+        100% { opacity: 0.2; }
     }
     
-    /* Markdown stilleri */
-    .msg-content ul {
-        padding-left: 20px;
-        margin-bottom: 8px;
+    /* Öneri Çipleri */
+    .suggestion-chips button {
+        background: rgba(255, 255, 255, 0.02);
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        font-weight: 500;
+        transition: all 0.25s ease;
     }
-    .msg-content li {
-        margin-bottom: 4px;
+    .suggestion-chips button:hover {
+        background: rgba(6, 182, 212, 0.12);
+        border-color: rgba(6, 182, 212, 0.4) !important;
+        color: #06b6d4 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.15);
     }
-    .msg-content h5 {
-        color: #ffffff;
-        font-weight: bold;
-        margin-top: 15px;
-        margin-bottom: 10px;
+    
+    /* Kart Arka Planı ve Giriş Alanı */
+    .chat-card {
+        background: rgba(13, 14, 20, 0.5) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(124, 58, 237, 0.03) !important;
+    }
+    
+    .chat-card-header {
+        background: rgba(255, 255, 255, 0.01) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+    
+    .chat-card-body {
+        background: rgba(13, 14, 20, 0.15) !important;
+    }
+    
+    .chat-input-box {
+        background: rgba(13, 14, 20, 0.75) !important;
+        border: 1px solid rgba(255, 255, 255, 0.09) !important;
+        color: #ffffff !important;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+    
+    .chat-input-box:focus {
+        border-color: rgba(6, 182, 212, 0.55) !important;
+        box-shadow: 0 0 15px rgba(6, 182, 212, 0.15) !important;
+    }
+    
+    .chat-send-btn {
+        background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
+        border: none !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .chat-send-btn:hover {
+        background: linear-gradient(135deg, #8b5cf6, #6366f1) !important;
+        box-shadow: 0 0 15px rgba(124, 58, 237, 0.35) !important;
+        transform: scale(1.03) translateY(-1px);
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- Ambient Effects -->
+<div class="ambient-glows">
+    <div class="glow-sphere glow-1"></div>
+    <div class="glow-sphere glow-2"></div>
+    <div class="glow-sphere glow-3"></div>
+</div>
+<div class="cyber-grid"></div>
+
 <div class="container my-4">
     <div class="row justify-content-center">
-        <div class="col-lg-9">
-            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="col-lg-9 glow-wrapper">
+            <div class="card border-0 rounded-4 overflow-hidden chat-card">
                 <!-- Üst Başlık -->
                 <div class="card-header border-0 py-3.5 d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="avatar-wrapper m-0" style="width: 42px; height: 42px; background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <div class="avatar-wrapper m-0" style="width: 42px; height: 42px; background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(6, 182, 212, 0.25);">
                             <i class="bi bi-cpu-fill text-info fs-4 animate-pulse"></i>
                         </div>
                         <div>
                             <h5 class="fw-bold m-0 text-white">Glide AI {{ _('Planlama Asistanı') }}</h5>
                             <span class="fs-8 text-secondary d-flex align-items-center gap-1">
                                 {% if api_configured %}
-                                    <span class="bg-success rounded-circle" style="width: 6px; height: 6px;"></span>
+                                    <span class="bg-success rounded-circle animate-pulse" style="width: 6px; height: 6px; box-shadow: 0 0 6px #10b981;"></span>
                                     {{ _('Gemini 1.5 Flash Aktif') }}
                                 {% else %}
-                                    <span class="bg-info rounded-circle animate-pulse" style="width: 6px; height: 6px; background-color: #06b6d4 !important;"></span>
+                                    <span class="bg-info rounded-circle animate-pulse" style="width: 6px; height: 6px; background-color: #06b6d4 !important; box-shadow: 0 0 6px #06b6d4;"></span>
                                     {{ _('AI Simülasyon Modu Aktif') }}
                                 {% endif %}
                             </span>
                         </div>
                     </div>
-                    <a href="{{ url_for('tasks.dashboard') }}" class="btn btn-sm btn-outline-light rounded-pill px-3">{{ _('Panele Geri Dön') }}</a>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="clear-chat-btn" class="btn btn-sm btn-outline-danger rounded-pill px-3 d-flex align-items-center gap-1.5 fs-8">
+                            <i class="bi bi-trash3-fill"></i>
+                            <span>{{ _('Geçmişi Temizle') }}</span>
+                        </button>
+                        <a href="{{ url_for('tasks.dashboard') }}" class="btn btn-sm btn-outline-light rounded-pill px-3 fs-8">{{ _('Panele Geri Dön') }}</a>
+                    </div>
                 </div>
 
                 <!-- Sohbet Penceresi -->
-                <div class="card-body p-4 bg-dark-subtle d-flex flex-column">
+                <div class="card-body p-4 bg-dark-subtle d-flex flex-column chat-card-body">
                     {% if not api_configured %}
-                        <div class="alert alert-info alert-dismissible fade show border-0 rounded-4 p-3 mb-4 d-flex align-items-start gap-2.5">
+                        <div class="alert alert-info alert-dismissible fade show border-0 rounded-4 p-3 mb-4 d-flex align-items-start gap-2.5" style="background: rgba(6, 182, 212, 0.08) !important; border: 1px solid rgba(6, 182, 212, 0.15) !important;">
                             <i class="bi bi-info-circle-fill fs-4 text-info lh-1 mt-0.5"></i>
-                            <div class="text-start">
+                            <div class="text-start fs-8">
                                 <strong class="text-white">{{ _('AI Simülasyon Modu:') }}</strong> 
                                 {{ _('Şu an sunucuda bir Gemini API Anahtarı girilmediği için çevrimdışı simülasyon modu aktiftir. Asistana selam verebilir, planınızı sıralamasını veya çakışmaları bulmasını isteyebilirsiniz. Gerçek üretken yapay zekayı denemek için .env dosyanıza GEMINI_API_KEY ekleyebilirsiniz.') }}
                             </div>
-                            <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert" style="padding: 1rem;"></button>
+                            <button type="button" class="btn-close shadow-none fs-8" data-bs-dismiss="alert" style="padding: 1rem;"></button>
                         </div>
                     {% endif %}
 
                     <div class="chat-container d-flex flex-column mb-3" id="chat-box">
                         <!-- Yapay Zeka Karşılama Mesajı -->
-                        <div class="msg-bubble msg-ai glowing-border">
-                            <div class="msg-content">
-                                Mebhaba <strong>{{ current_user.username }}</strong>! Ben senin akıllı planlama asistanın <strong>Glide AI</strong>. 
-                                <br><br>
-                                Bugün yapılacak tüm görevlerini inceledim. Günlük işlerini planlamak, saat çakışmalarını çözmek veya o anki motivasyonuna göre zaman çizelgeni düzenlemek için buradayım. 
-                                <br><br>
-                                <em>Bugün kendini nasıl hissediyorsun? Günün en verimli saatlerini hangi işlere ayırmak istersin? Yaz bana, planını karşılıklı konuşarak güncelleyelim!</em>
+                        <div class="chat-row d-flex gap-3 mb-4 flex-row align-items-start">
+                            <div class="avatar-indicator ai-avatar d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px; border-radius: 12px; background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);">
+                                <i class="bi bi-cpu-fill text-info fs-5 animate-pulse"></i>
+                            </div>
+                            <div class="msg-bubble msg-ai glowing-border mb-0">
+                                <div class="msg-content">
+                                    Merhaba <strong>{{ current_user.username }}</strong>! Ben senin akıllı planlama asistanın <strong>Glide AI</strong>. 
+                                    <br><br>
+                                    Bugün yapılacak tüm görevlerini inceledim. Günlük işlerini planlamak, saat çakışmalarını çözmek veya o anki motivasyonuna göre zaman çizelgeni düzenlemek için buradayım. 
+                                    <br><br>
+                                    <em>Bugün kendini nasıl hissediyorsun? Günün en verimli saatlerini hangi işlere ayırmak istersin? Yaz bana, planını karşılıklı konuşarak güncelleyelim!</em>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Geçmiş Konuşmalar -->
                         {% for chat in chats %}
-                            <div class="msg-bubble {% if chat.sender == 'user' %}msg-user{% else %}msg-ai glowing-border{% endif %}">
-                                <div class="msg-content raw-markdown">
-                                    {{ chat.message }}
+                            <div class="chat-row d-flex gap-3 mb-4 {% if chat.sender == 'user' %}flex-row-reverse{% else %}flex-row{% endif %} align-items-start">
+                                {% if chat.sender == 'user' %}
+                                    <div class="avatar-indicator user-avatar d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(124, 58, 237, 0.3); box-shadow: 0 0 10px rgba(124, 58, 237, 0.2);">
+                                        <img src="{{ url_for('static', filename='uploads/' + current_user.avatar) }}" class="w-100 h-100 object-fit-cover" alt="User">
+                                    </div>
+                                {% else %}
+                                    <div class="avatar-indicator ai-avatar d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px; border-radius: 12px; background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);">
+                                        <i class="bi bi-cpu-fill text-info fs-5"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="msg-bubble {% if chat.sender == 'user' %}msg-user{% else %}msg-ai glowing-border{% endif %} mb-0">
+                                    <div class="msg-content raw-markdown">
+                                        {{ chat.message }}
+                                    </div>
                                 </div>
                             </div>
                         {% endfor %}
 
-                        <!-- Yazıyor... Animasyonu -->
-                        <div class="typing-indicator" id="ai-typing">
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
+                        <!-- Yazıyor... Animasyon Satırı -->
+                        <div class="chat-row d-flex gap-3 mb-4 flex-row align-items-start" id="ai-typing-row" style="display: none;">
+                            <div class="avatar-indicator ai-avatar d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px; border-radius: 12px; background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);">
+                                <i class="bi bi-cpu-fill text-info fs-5 animate-pulse"></i>
+                            </div>
+                            <div class="typing-indicator">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                            </div>
                         </div>
+                    </div>
+
+                    <!-- Öneri Çipleri (Suggestion Chips) -->
+                    <div class="suggestion-chips d-flex flex-wrap gap-2 mb-3 mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1.5 fs-8 text-secondary border border-secondary border-opacity-25" data-prompt="Günlük planımdaki saat çakışmalarını kontrol eder misin?">
+                            🕒 Çakışmaları Bul
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1.5 fs-8 text-secondary border border-secondary border-opacity-25" data-prompt="Görevlerimi öncelik sırasına göre dizer misin?">
+                            ⭐ Görevleri Sırala
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1.5 fs-8 text-secondary border border-secondary border-opacity-25" data-prompt="Bugünkü planımı optimize etmek ve verimlilik tavsiyesi almak istiyorum.">
+                            💡 Verimlilik Önerileri
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1.5 fs-8 text-secondary border border-secondary border-opacity-25" data-prompt="Bugün kendimi biraz yorgun hissediyorum, planımı esnek periyotlara çeker misin?">
+                            ⚡ Esnek Plan İstiyorum
+                        </button>
                     </div>
 
                     <!-- Giriş Kutusu -->
                     <form id="chat-form" class="mt-auto">
                         <div class="input-group">
-                            <input type="text" id="chat-input" class="form-control border-secondary rounded-start-pill py-3 px-4 shadow-none bg-dark text-white" placeholder="{{ _('Asistan ile konuşun, planınızı isteyin...') }}" autocomplete="off">
-                            <button type="submit" class="btn btn-primary rounded-end-pill px-4">
+                            <input type="text" id="chat-input" class="form-control border-0 rounded-start-pill py-3 px-4 shadow-none chat-input-box" placeholder="{{ _('Asistan ile konuşun, planınızı isteyin...') }}" autocomplete="off">
+                            <button type="submit" class="btn btn-primary rounded-end-pill px-4 chat-send-btn">
                                 <i class="bi bi-send-fill fs-5"></i>
                             </button>
                         </div>
@@ -195,7 +372,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatBox = document.getElementById('chat-box');
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
-    const typingIndicator = document.getElementById('ai-typing');
+    const typingIndicatorRow = document.getElementById('ai-typing-row');
+    const clearBtn = document.getElementById('clear-chat-btn');
 
     // Sayfa açıldığında en alta kaydır
     scrollToBottom();
@@ -204,6 +382,48 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.raw-markdown').forEach(el => {
         el.innerHTML = renderMarkdown(el.textContent);
     });
+
+    // Öneri Çipleri Tıklama Eylemi
+    document.querySelectorAll('.suggestion-chips button').forEach(button => {
+        button.addEventListener('click', function() {
+            const prompt = this.getAttribute('data-prompt');
+            chatInput.value = prompt;
+            chatForm.dispatchEvent(new Event('submit'));
+        });
+    });
+
+    // Geçmişi Temizleme Eylemi
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            if (!confirm('Sohbet geçmişinizi tamamen temizlemek istediğinize emin misiniz?')) return;
+            
+            clearBtn.disabled = true;
+            fetch("{{ url_for('tasks.ai_chat_clear') }}", {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Sayfadaki geçmiş sohbet satırlarını temizle (İlk sıradaki karşılama hariç)
+                    const rows = chatBox.querySelectorAll('.chat-row');
+                    rows.forEach((row, index) => {
+                        if (index > 0 && row.id !== 'ai-typing-row') {
+                            row.remove();
+                        }
+                    });
+                    clearBtn.disabled = false;
+                    scrollToBottom();
+                } else {
+                    alert('Hata: ' + data.message);
+                    clearBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                alert('İşlem gerçekleştirilemedi.');
+                clearBtn.disabled = false;
+            });
+        });
+    }
 
     if (chatForm) {
         chatForm.addEventListener('submit', function(e) {
@@ -259,7 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function appendMessage(text, sender) {
         const bubble = document.createElement('div');
-        bubble.className = `msg-bubble ${sender === 'user' ? 'msg-user' : 'msg-ai glowing-border'}`;
+        bubble.className = `msg-bubble ${sender === 'user' ? 'msg-user' : 'msg-ai glowing-border'} mb-0`;
         
         const contentDiv = document.createElement('div');
         contentDiv.className = 'msg-content';
@@ -269,14 +489,36 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             contentDiv.textContent = text;
         }
-        
         bubble.appendChild(contentDiv);
-        // Yazma göstergesinin hemen önüne ekle
-        chatBox.insertBefore(bubble, typingIndicator);
+
+        // Satır Sarmalayıcısı (Flexbox)
+        const row = document.createElement('div');
+        row.className = `chat-row d-flex gap-3 mb-4 ${sender === 'user' ? 'flex-row-reverse' : 'flex-row'} align-items-start`;
+        
+        const avatar = document.createElement('div');
+        if (sender === 'user') {
+            avatar.className = 'avatar-indicator user-avatar d-flex align-items-center justify-content-center flex-shrink-0';
+            avatar.style = 'width: 40px; height: 40px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(124, 58, 237, 0.3); box-shadow: 0 0 10px rgba(124, 58, 237, 0.2);';
+            const img = document.createElement('img');
+            img.src = "{{ url_for('static', filename='uploads/' + current_user.avatar) }}";
+            img.className = 'w-100 h-100 object-fit-cover';
+            img.alt = 'User';
+            avatar.appendChild(img);
+        } else {
+            avatar.className = 'avatar-indicator ai-avatar d-flex align-items-center justify-content-center flex-shrink-0';
+            avatar.style = 'width: 40px; height: 40px; border-radius: 12px; background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);';
+            avatar.innerHTML = '<i class="bi bi-cpu-fill text-info fs-5"></i>';
+        }
+        
+        row.appendChild(avatar);
+        row.appendChild(bubble);
+        
+        // Yazıyor... satırının hemen önüne ekle
+        chatBox.insertBefore(row, typingIndicatorRow);
     }
 
     function showTyping(show) {
-        typingIndicator.style.display = show ? 'block' : 'none';
+        typingIndicatorRow.style.display = show ? 'flex' : 'none';
         scrollToBottom();
     }
 
@@ -304,13 +546,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!inList) { htmlOutput += '<ul class="list-unstyled ps-0">'; inList = true; }
                 let itemText = trimmed.replace(/^[-*]\s+/, '');
                 itemText = parseInlineMarkdown(itemText);
-                htmlOutput += `<li class="d-flex align-items-start gap-1 mb-1.5 text-secondary"><i class="bi bi-arrow-right-short text-info fs-5 lh-1"></i> <div>${itemText}</div></li>`;
+                htmlOutput += `<li class="d-flex align-items-start gap-1 mb-1.5 text-secondary fs-7"><i class="bi bi-arrow-right-short text-info fs-5 lh-1"></i> <div>${itemText}</div></li>`;
             }
             // Paragraflar
             else if (trimmed.length > 0) {
                 if (inList) { htmlOutput += '</ul>'; inList = false; }
                 let paraText = parseInlineMarkdown(trimmed);
-                htmlOutput += `<p class="text-secondary lh-lg mb-2.5">${paraText}</p>`;
+                htmlOutput += `<p class="text-secondary lh-lg mb-2.5 fs-7">${paraText}</p>`;
             }
         });
         

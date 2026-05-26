@@ -242,3 +242,15 @@ def ai_chat():
     # GET Talebinde geçmiş konuşmaları arayüze yükle
     chats = ChatHistory.query.filter_by(user_id=current_user.id).order_by(ChatHistory.created_at.asc()).all()
     return render_template('tasks/ai_chat.html', chats=chats, api_configured=api_key_configured)
+
+
+@tasks_bp.route('/ai/chat/clear', methods=['POST'])
+@login_required
+def ai_chat_clear():
+    """
+    Kullanıcının sohbet geçmişini veritabanından tamamen siler.
+    """
+    ChatHistory.query.filter_by(user_id=current_user.id).delete()
+    db.session.commit()
+    return jsonify({'status': 'success', 'message': 'Sohbet geçmişi başarıyla temizlendi.'})
+

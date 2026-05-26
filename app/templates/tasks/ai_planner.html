@@ -2,17 +2,139 @@
 
 {% block title %}{{ _('Yapay Zeka Planlayıcı') }} - Glide{% endblock %}
 
+{% block styles %}
+<style>
+    /* Hareketli Ambient Işıma Küreleri */
+    .ambient-glows {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -2;
+        overflow: hidden;
+        pointer-events: none;
+    }
+    .glow-sphere {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(130px);
+        opacity: 0.12;
+        mix-blend-mode: screen;
+        animation: floatGlow 25s infinite alternate ease-in-out;
+    }
+    .glow-1 {
+        top: -10%;
+        left: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(124, 58, 237, 0.7) 0%, transparent 80%);
+    }
+    .glow-2 {
+        bottom: -10%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(6, 182, 212, 0.7) 0%, transparent 80%);
+        animation-delay: -5s;
+    }
+    .glow-3 {
+        top: 35%;
+        left: 45%;
+        width: 450px;
+        height: 450px;
+        background: radial-gradient(circle, rgba(236, 72, 153, 0.55) 0%, transparent 80%);
+        animation-delay: -10s;
+    }
+    @keyframes floatGlow {
+        0% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(70px, 50px) scale(1.08); }
+        100% { transform: translate(-30px, -40px) scale(0.95); }
+    }
+
+    /* Cyber Izgara Dokusu */
+    .cyber-grid {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1;
+        pointer-events: none;
+        background-image: 
+            linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+        background-size: 40px 40px;
+        mask-image: radial-gradient(circle, black 40%, transparent 95%);
+        -webkit-mask-image: radial-gradient(circle, black 40%, transparent 95%);
+    }
+
+    /* Glassmorphic Kart Stilleri */
+    .card {
+        background: rgba(13, 14, 20, 0.5) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(124, 58, 237, 0.03) !important;
+        border-radius: 20px !important;
+    }
+    
+    .card-header {
+        background: rgba(255, 255, 255, 0.01) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .ai-glow-card {
+        border-color: rgba(6, 182, 212, 0.25) !important;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(6, 182, 212, 0.05) !important;
+    }
+
+    /* Rapor Metin Alanı */
+    .suggestion-content {
+        line-height: 1.8;
+        font-size: 0.95rem;
+    }
+
+    .suggestion-content h5 {
+        border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* Görev Kartı Elemanları */
+    .ai-task-sequence .task-item {
+        background: rgba(255, 255, 255, 0.015);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-left: 4px solid var(--primary-color);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 12px;
+    }
+
+    .ai-task-sequence .task-item:hover {
+        transform: translateX(6px) scale(1.01);
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
+<!-- Ambient Effects -->
+<div class="ambient-glows">
+    <div class="glow-sphere glow-1"></div>
+    <div class="glow-sphere glow-2"></div>
+    <div class="glow-sphere glow-3"></div>
+</div>
+<div class="cyber-grid"></div>
+
 <div class="container my-4">
     <div class="row align-items-center mb-4">
         <div class="col-md-6">
             <h2 class="fw-bold m-0 text-white"><i class="bi bi-cpu-fill text-info me-2 animate-pulse"></i>{{ _('AI Akıllı Planlayıcı') }}</h2>
-            <p class="text-secondary m-0">{{ _('Yapay zeka tarafından üretilen zaman analizi ve verimlilik önerileri.') }}</p>
+            <p class="text-secondary m-0 fs-8">{{ _('Yapay zeka tarafından üretilen zaman analizi ve verimlilik önerileri.') }}</p>
         </div>
         <div class="col-md-6 text-md-end mt-3 mt-md-0">
-            <a href="{{ url_for('tasks.dashboard') }}" class="btn btn-outline-light rounded-pill"><i class="bi bi-arrow-left me-1"></i>{{ _('Panele Geri Dön') }}</a>
+            <a href="{{ url_for('tasks.dashboard') }}" class="btn btn-outline-light rounded-pill px-4 fs-8"><i class="bi bi-arrow-left me-1"></i>{{ _('Panele Geri Dön') }}</a>
             <form method="POST" action="{{ url_for('tasks.ai_optimize') }}" class="d-inline-block ms-2">
-                <button type="submit" class="btn btn-primary rounded-pill"><i class="bi bi-arrow-clockwise me-1"></i>{{ _('Analizi Yenile') }}</button>
+                <button type="submit" class="btn btn-primary rounded-pill px-4 fs-8"><i class="bi bi-arrow-clockwise me-1"></i>{{ _('Analizi Yenile') }}</button>
             </form>
         </div>
     </div>
@@ -21,7 +143,7 @@
         <!-- Sol Panel: AI Analiz Raporu -->
         <div class="col-lg-7">
             <div class="card border-0 ai-glow-card h-100">
-                <div class="card-header border-0 py-3 d-flex align-items-center gap-2">
+                <div class="card-header border-0 py-3.5 d-flex align-items-center gap-2">
                     <i class="bi bi-journal-text text-info fs-5"></i>
                     <h5 class="fw-bold m-0 text-white">{{ _('Yapay Zeka Analiz Raporu') }}</h5>
                 </div>
@@ -33,12 +155,12 @@
                         <div id="suggestion-rendered" class="suggestion-content">
                             <!-- JS ile render edilecek -->
                         </div>
-                        <div class="text-secondary fs-8 mt-4 pt-3 border-top border-secondary">
+                        <div class="text-secondary fs-8 mt-4 pt-3 border-top border-secondary border-opacity-50">
                             <i class="bi bi-clock me-1"></i>{{ _('Oluşturulma Zamanı:') }} {{ suggestion.created_at.strftime('%d.%m.%Y %H:%M') }}
                         </div>
                     {% else %}
                         <div class="text-center py-5">
-                            <i class="bi bi-cpu text-secondary fs-1 d-block mb-3"></i>
+                            <i class="bi bi-cpu text-secondary fs-1 d-block mb-3 animate-pulse"></i>
                             <h5 class="fw-semibold text-white">{{ _('Henüz Bir Rapor Yok') }}</h5>
                             <p class="text-secondary small">{{ _('Zaman planınızı optimize etmek ve çakışma raporu almak için lütfen analizi başlatın.') }}</p>
                         </div>
@@ -50,11 +172,11 @@
         <!-- Sağ Panel: AI Sıralı Akıllı Görev Listesi -->
         <div class="col-lg-5">
             <div class="card border-0 h-100">
-                <div class="card-header border-0 py-3">
+                <div class="card-header border-0 py-3.5">
                     <h5 class="fw-bold m-0 text-white"><i class="bi bi-sort-down text-primary me-2"></i>{{ _('Akıllı Öncelik Sıralaması') }}</h5>
                 </div>
                 <div class="card-body p-4 pt-2">
-                    <p class="text-secondary small mb-4">{{ _('Görevleriniz, yapay zekanın önerdiği şekilde periyot, öncelik derecesi ve saat baz alınarak verimlilik odaklı sıralanmıştır.') }}</p>
+                    <p class="text-secondary small mb-4 fs-8">{{ _('Görevleriniz, yapay zekanın önerdiği şekilde periyot, öncelik derecesi ve saat baz alınarak verimlilik odaklı sıralanmıştır.') }}</p>
                     
                     {% if tasks %}
                         <div class="ai-task-sequence">
@@ -71,9 +193,9 @@
                                             </span>
                                             <span class="fw-bold text-white fs-7">{{ task.title }}</span>
                                         </div>
-                                        <span class="badge bg-secondary-subtle text-secondary fs-8 px-2 py-1">{{ task.period | upper }}</span>
+                                        <span class="badge bg-secondary-subtle text-secondary fs-8 px-2.5 py-1 rounded-pill">{{ task.period | upper }}</span>
                                     </div>
-                                    <div class="d-flex align-items-center gap-2 mt-2 text-secondary fs-7">
+                                    <div class="d-flex align-items-center gap-2 mt-2 text-secondary fs-8">
                                         <i class="bi bi-clock"></i>
                                         <span>{{ task.start_time }} - {{ task.end_time }}</span>
                                         <span class="mx-1">&bull;</span>
@@ -122,21 +244,20 @@ document.addEventListener('DOMContentLoaded', function() {
             if (trimmed.startsWith('###')) {
                 if (inList) { htmlOutput += '</ul>'; inList = false; }
                 const title = trimmed.replace(/^###\s+/, '');
-                htmlOutput += `<h5 class="fw-bold text-white mt-4 mb-3 pb-2 border-bottom border-secondary d-flex align-items-center gap-2"><i class="bi bi-stars text-info animate-pulse"></i> ${title}</h5>`;
+                htmlOutput += `<h5 class="fw-bold text-white mt-4 mb-3 pb-2 border-bottom border-secondary border-opacity-50 d-flex align-items-center gap-2"><i class="bi bi-stars text-info animate-pulse"></i> ${title}</h5>`;
             }
             // Liste Öğeleri (- veya *)
             else if (trimmed.startsWith('-') || trimmed.startsWith('*')) {
                 if (!inList) { htmlOutput += '<ul class="list-unstyled ps-0">'; inList = true; }
                 let itemText = trimmed.replace(/^[-*]\s+/, '');
-                // Bolding ve em içindekileri dönüştür
                 itemText = parseInlineMarkdown(itemText);
-                htmlOutput += `<li class="d-flex align-items-start gap-2 mb-2.5 text-secondary"><i class="bi bi-arrow-right-short text-info fs-5 lh-1"></i> <div>${itemText}</div></li>`;
+                htmlOutput += `<li class="d-flex align-items-start gap-2 mb-2.5 text-secondary fs-7"><i class="bi bi-arrow-right-short text-info fs-5 lh-1"></i> <div>${itemText}</div></li>`;
             }
             // Düz Paragraflar veya diğer yapılar
             else if (trimmed.length > 0) {
                 if (inList) { htmlOutput += '</ul>'; inList = false; }
                 let paraText = parseInlineMarkdown(trimmed);
-                htmlOutput += `<p class="text-secondary lh-lg mb-3">${paraText}</p>`;
+                htmlOutput += `<p class="text-secondary lh-lg mb-3 fs-7">${paraText}</p>`;
             }
         });
         
