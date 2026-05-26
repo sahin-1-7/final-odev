@@ -12,7 +12,8 @@ def get_gemini_suggestion(tasks_data):
     if not api_key:
         return None
         
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    model_name = os.environ.get('GEMINI_MODEL', 'gemini-1.5-flash')
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
     
     prompt = (
         "Sen akıllı zaman yönetimi ve üretkenlik asistanı 'Glide'sın. "
@@ -59,7 +60,8 @@ def get_gemini_chat_response(user_message, chat_history_list, tasks_data):
     if not api_key:
         return None
         
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    model_name = os.environ.get('GEMINI_MODEL', 'gemini-1.5-flash')
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
     
     history_str = ""
     for msg in chat_history_list:

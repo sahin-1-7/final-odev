@@ -241,7 +241,8 @@ def ai_chat():
         
     # GET Talebinde geçmiş konuşmaları arayüze yükle
     chats = ChatHistory.query.filter_by(user_id=current_user.id).order_by(ChatHistory.created_at.asc()).all()
-    return render_template('tasks/ai_chat.html', chats=chats, api_configured=api_key_configured)
+    model_name = os.environ.get('GEMINI_MODEL', 'gemini-1.5-flash')
+    return render_template('tasks/ai_chat.html', chats=chats, api_configured=api_key_configured, model_name=model_name)
 
 
 @tasks_bp.route('/ai/chat/clear', methods=['POST'])
