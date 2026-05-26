@@ -143,9 +143,6 @@ def ai_chat():
     api_key_configured = bool(current_app.config.get('GEMINI_API_KEY') or os.environ.get('GEMINI_API_KEY'))
     
     if request.method == 'POST':
-        if not api_key_configured:
-            return jsonify({'error': 'Yapay Zeka API anahtarı yapılandırılmamış. Sohbet başlatılamıyor.'}), 400
-            
         user_message = request.form.get('message', '').strip()
         if not user_message:
             return jsonify({'error': 'Mesaj boş olamaz.'}), 400
@@ -168,14 +165,69 @@ def ai_chat():
             )
         tasks_data = "\n".join(tasks_list) if tasks_list else "Henüz görev tanımlanmamış."
         
-        # 3. Gemini API'den yanıt üret
-        ai_response = get_gemini_chat_response(user_message, history_list[:-1], tasks_data)
-        
+        # 3. Gemini API veya Simülasyon Yanıtı Üret
+        ai_response = None
+        if api_key_configured:
+            ai_response = get_gemini_chat_response(user_message, history_list[:-1], tasks_data)
+            
         if not ai_response:
-            ai_response = (
-                "Üzgünüm, şu anda Google Gemini sunucularıyla bağlantı kuramadım. "
-                "Lütfen internet bağlantınızı kontrol edin veya daha sonra tekrar deneyin."
-            )
+            # SİMÜLASYON MODU (Fallback / Offline Demo Modu)
+            # Kullanıcının mesajına göre akıllıca ve gerçekçi Türkçe yanıtlar simüle edilir
+            msg_lower = user_message.lower()
+            if any(k in msg_lower for k in ["selam", "merhaba", "hey", "naber", "meraba"]):
+                ai_response = (
+                    f"Merhaba **{current_user.username}**! Şu an *Çevrimdışı (Simülasyon)* modunda olsak da sana destek olmaya hazırım.\n\n"
+                    "Bugünkü görev listeni analiz etmemi ister misin? Ya da planındaki saat çakışmalarını kontrol edebiliriz. "
+                    "Hangisiyle başlayalım?"
+                )
+            elif any(k in msg_lower for k in ["görev", "sırala", "plan", "iş", "hedef", "list"]):
+                if tasks:
+                    tasks_sorted_str = ""
+                    # Görevleri öncelik sırasına göre sıralayalım
+                    priority_weights = {'High': 3, 'Medium': 2, 'Low': 1}
+                    sorted_t = sorted(tasks, key=lambda t: -priority_weights.get(t.priority, 2))
+                    for i, t in enumerate(sorted_t, 1):
+                        status = "✅" if t.is_completed else "⏳"
+                        tasks_sorted_str += f"{i}. {status} **{t.title}** *(Öncelik: {t.priority}, Saat: {t.start_time} - {t.end_time})*\n"
+                    
+                    ai_response = (
+                        f"Harika! Güncel listendeki **{len(tasks)}** adet görevi senin için analiz ettim. "
+                        "Üretkenliğini en üst düzeye çıkarmak için görevlerini öncelik sırasına göre dizdim:\n\n"
+                        f"{tasks_sorted_str}\n"
+                        "💡 **Glide Tavsiyesi:** Güne en yüksek öncelikli görevlerinle başlamanı öneririm. "
+                        "Bu sıralama senin için uygun mu? Saati değişmesi gereken bir görev var mı?"
+                    )
+                else:
+                    ai_response = (
+                        "Güncel planında henüz tanımlı bir görev göremedim. "
+                        "Öncelikle panelden birkaç görev (örn: ders çalışmak, toplantı vb.) eklersen, "
+                        "onları senin için en verimli şekilde sıralayabilirim."
+                    )
+            elif any(k in msg_lower for k in ["çakış", "overlap", "saat", "kontrol"]):
+                # Zaman çakışması kontrolü
+                from app.ai_engine import check_overlap
+                conflicts = []
+                for i in range(len(tasks)):
+                    for j in range(i + 1, len(tasks)):
+                        if tasks[i].period == tasks[j].period and check_overlap(tasks[i], tasks[j]):
+                            conflicts.append((tasks[i], tasks[j]))
+                if conflicts:
+                    conflict_str = ""
+                    for t1, t2 in conflicts:
+                        conflict_str += f"- **Çakışma:** [{t1.start_time}-{t1.end_time}] saatlerindeki *\"{t1.title}\"* ile [{t2.start_time}-{t2.end_time}] saatlerindeki *\"{t2.title}\"* çakışıyor.\n"
+                    ai_response = (
+                        "Zaman çizelgende yaptığım analizde bazı görevlerinin çakıştığını tespit ettim:\n\n"
+                        f"{conflict_str}\n"
+                        "💡 *Öneri: Çakışan görevlerden daha az öncelikli olanın saat aralığını güncelleyebiliriz.*"
+                    )
+                else:
+                    ai_response = "🎉 Harika! Zaman planında herhangi bir saat veya görev çakışması tespit edilmedi. Her şey dengeli görünüyor."
+            else:
+                ai_response = (
+                    "Glide yapay zeka asistanı çevrimdışı (simülasyon) modunda çalışıyor. "
+                    "Gerçek zamanlı olarak Gemini üretken zekasını deneyimlemek için `.env` dosyanıza kendi API anahtarınızı ekleyebilirsiniz.\n\n"
+                    "Şu anki görevlerini öncelik sırasına koymamı veya saat çakışmalarını incelememi ister misin?"
+                )
             
         # 4. Yapay zekanın yanıtını kaydet
         ai_chat = ChatHistory(message=ai_response, sender='ai', user_id=current_user.id)

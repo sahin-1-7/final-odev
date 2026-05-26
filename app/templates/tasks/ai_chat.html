@@ -118,11 +118,12 @@
                         <div>
                             <h5 class="fw-bold m-0 text-white">Glide AI {{ _('Planlama Asistanı') }}</h5>
                             <span class="fs-8 text-secondary d-flex align-items-center gap-1">
-                                <span class="bg-success rounded-circle" style="width: 6px; height: 6px;"></span>
                                 {% if api_configured %}
+                                    <span class="bg-success rounded-circle" style="width: 6px; height: 6px;"></span>
                                     {{ _('Gemini 1.5 Flash Aktif') }}
                                 {% else %}
-                                    {{ _('Çevrimdışı (Çevrimdışı Mod)') }}
+                                    <span class="bg-info rounded-circle animate-pulse" style="width: 6px; height: 6px; background-color: #06b6d4 !important;"></span>
+                                    {{ _('AI Simülasyon Modu Aktif') }}
                                 {% endif %}
                             </span>
                         </div>
@@ -133,16 +134,13 @@
                 <!-- Sohbet Penceresi -->
                 <div class="card-body p-4 bg-dark-subtle d-flex flex-column">
                     {% if not api_configured %}
-                        <div class="alert alert-warning border-0 rounded-4 p-4 text-center mb-4">
-                            <i class="bi bi-exclamation-triangle-fill fs-2 text-warning d-block mb-2.5"></i>
-                            <h5 class="fw-bold text-white mb-2">{{ _('Yapay Zeka Yapılandırması Eksik') }}</h5>
-                            <p class="text-secondary small mb-3">
-                                {{ _('İnteraktif Yapay Zeka Sohbet Asistanını kullanabilmek için sunucuda bir Google Gemini API anahtarı ayarlanmış olmalıdır.') }}
-                            </p>
-                            <div class="text-start bg-dark p-3 rounded-3 fs-8 text-secondary font-monospace border border-secondary">
-                                # .env dosyanızın en altına şunu ekleyin:<br>
-                                GEMINI_API_KEY=senin_api_anahtarin
+                        <div class="alert alert-info alert-dismissible fade show border-0 rounded-4 p-3 mb-4 d-flex align-items-start gap-2.5">
+                            <i class="bi bi-info-circle-fill fs-4 text-info lh-1 mt-0.5"></i>
+                            <div class="text-start">
+                                <strong class="text-white">{{ _('AI Simülasyon Modu:') }}</strong> 
+                                {{ _('Şu an sunucuda bir Gemini API Anahtarı girilmediği için çevrimdışı simülasyon modu aktiftir. Asistana selam verebilir, planınızı sıralamasını veya çakışmaları bulmasını isteyebilirsiniz. Gerçek üretken yapay zekayı denemek için .env dosyanıza GEMINI_API_KEY ekleyebilirsiniz.') }}
                             </div>
+                            <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert" style="padding: 1rem;"></button>
                         </div>
                     {% endif %}
 
@@ -178,8 +176,8 @@
                     <!-- Giriş Kutusu -->
                     <form id="chat-form" class="mt-auto">
                         <div class="input-group">
-                            <input type="text" id="chat-input" class="form-control border-secondary rounded-start-pill py-3 px-4 shadow-none bg-dark text-white" placeholder="{{ _('Asistan ile konuşun, planınızı isteyin...') }}" {% if not api_configured %}disabled{% endif %} autocomplete="off">
-                            <button type="submit" class="btn btn-primary rounded-end-pill px-4" {% if not api_configured %}disabled{% endif %}>
+                            <input type="text" id="chat-input" class="form-control border-secondary rounded-start-pill py-3 px-4 shadow-none bg-dark text-white" placeholder="{{ _('Asistan ile konuşun, planınızı isteyin...') }}" autocomplete="off">
+                            <button type="submit" class="btn btn-primary rounded-end-pill px-4">
                                 <i class="bi bi-send-fill fs-5"></i>
                             </button>
                         </div>
