@@ -172,61 +172,72 @@ def ai_chat():
             
         if not ai_response:
             # SİMÜLASYON MODU (Fallback / Offline Demo Modu)
-            # Kullanıcının mesajına göre akıllıca ve gerçekçi Türkçe yanıtlar simüle edilir
+            # Kullanıcının mesajına göre hem sohbet eden hem de görev sıralaması yapan zengin bir motor
             msg_lower = user_message.lower()
-            if any(k in msg_lower for k in ["selam", "merhaba", "hey", "naber", "meraba"]):
-                ai_response = (
-                    f"Merhaba **{current_user.username}**! Şu an *Çevrimdışı (Simülasyon)* modunda olsak da sana destek olmaya hazırım.\n\n"
-                    "Bugünkü görev listeni analiz etmemi ister misin? Ya da planındaki saat çakışmalarını kontrol edebiliriz. "
-                    "Hangisiyle başlayalım?"
-                )
-            elif any(k in msg_lower for k in ["görev", "sırala", "plan", "iş", "hedef", "list"]):
+            
+            # Görev sıralama tespiti
+            wants_sorting = any(k in msg_lower for k in ["sırala", "sirala", "görev", "gorev", "plan", "hedef", "list", "düzenle", "duzenle", "kronolojik"])
+            wants_greeting = any(k in msg_lower for k in ["selam", "merhaba", "hey", "naber", "meraba", "merhabalar"])
+            wants_help = any(k in msg_lower for k in ["yardım", "yardim", "neler yapabilirsin", "özellikler"])
+            
+            if wants_sorting:
                 if tasks:
-                    tasks_sorted_str = ""
-                    # Görevleri öncelik sırasına göre sıralayalım
+                    # Görevleri önceliklerine göre sıralayalım (High -> Medium -> Low)
                     priority_weights = {'High': 3, 'Medium': 2, 'Low': 1}
                     sorted_t = sorted(tasks, key=lambda t: -priority_weights.get(t.priority, 2))
+                    tasks_sorted_str = ""
                     for i, t in enumerate(sorted_t, 1):
                         status = "✅" if t.is_completed else "⏳"
-                        tasks_sorted_str += f"{i}. {status} **{t.title}** *(Öncelik: {t.priority}, Saat: {t.start_time} - {t.end_time})*\n"
+                        p_badge = "🔴 Yüksek" if t.priority == 'High' else "🟡 Orta" if t.priority == 'Medium' else "🟢 Düşük"
+                        tasks_sorted_str += f"{i}. {status} **{t.title}** | Saat: {t.start_time} - {t.end_time} | Öncelik: {p_badge}\n"
                     
+                    greeting_prefix = ""
+                    if wants_greeting:
+                        greeting_prefix = f"Merhaba **{current_user.username}**! Harika bir gün dilerim. Sohbet etmek ne güzel!\n\n"
+                    else:
+                        greeting_prefix = "Tabii ki! Günlük zaman yönetimini optimize etmek için buradayım.\n\n"
+                        
                     ai_response = (
-                        f"Harika! Güncel listendeki **{len(tasks)}** adet görevi senin için analiz ettim. "
-                        "Üretkenliğini en üst düzeye çıkarmak için görevlerini öncelik sırasına göre dizdim:\n\n"
+                        f"{greeting_prefix}"
+                        f"Güncel listendeki **{len(tasks)}** adet görevi senin için inceledim ve maksimum üretkenlik için öncelik sırasına göre dizdim:\n\n"
                         f"{tasks_sorted_str}\n"
-                        "💡 **Glide Tavsiyesi:** Güne en yüksek öncelikli görevlerinle başlamanı öneririm. "
-                        "Bu sıralama senin için uygun mu? Saati değişmesi gereken bir görev var mı?"
+                        "💡 **Glide Yapay Zeka Önerisi:** En yüksek öncelikli görevlerinden başlamak odaklanmanı artıracaktır. "
+                        "Bu sıralama senin için nasıl? Değiştirmemi istediğin herhangi bir saat veya öncelik var mı?"
                     )
                 else:
+                    greeting_prefix = ""
+                    if wants_greeting:
+                        greeting_prefix = f"Merhaba **{current_user.username}**! "
                     ai_response = (
-                        "Güncel planında henüz tanımlı bir görev göremedim. "
-                        "Öncelikle panelden birkaç görev (örn: ders çalışmak, toplantı vb.) eklersen, "
-                        "onları senin için en verimli şekilde sıralayabilirim."
+                        f"{greeting_prefix}Sohbet isteğini ve görev sıralama talebini aldım. "
+                        "Fakat şu an planında kayıtlı bir görev bulunmuyor. "
+                        "Öncelikle panelden birkaç görev eklersen, onları senin için hemen analiz edebilir ve en verimli şekilde sıralayabilirim!"
                     )
-            elif any(k in msg_lower for k in ["çakış", "overlap", "saat", "kontrol"]):
-                # Zaman çakışması kontrolü
-                from app.ai_engine import check_overlap
-                conflicts = []
-                for i in range(len(tasks)):
-                    for j in range(i + 1, len(tasks)):
-                        if tasks[i].period == tasks[j].period and check_overlap(tasks[i], tasks[j]):
-                            conflicts.append((tasks[i], tasks[j]))
-                if conflicts:
-                    conflict_str = ""
-                    for t1, t2 in conflicts:
-                        conflict_str += f"- **Çakışma:** [{t1.start_time}-{t1.end_time}] saatlerindeki *\"{t1.title}\"* ile [{t2.start_time}-{t2.end_time}] saatlerindeki *\"{t2.title}\"* çakışıyor.\n"
-                    ai_response = (
-                        "Zaman çizelgende yaptığım analizde bazı görevlerinin çakıştığını tespit ettim:\n\n"
-                        f"{conflict_str}\n"
-                        "💡 *Öneri: Çakışan görevlerden daha az öncelikli olanın saat aralığını güncelleyebiliriz.*"
-                    )
-                else:
-                    ai_response = "🎉 Harika! Zaman planında herhangi bir saat veya görev çakışması tespit edilmedi. Her şey dengeli görünüyor."
+            elif wants_greeting:
+                ai_response = (
+                    f"Merhaba **{current_user.username}**! Harika bir sohbet olsun. Ben senin akıllı asistanın Glide.\n\n"
+                    "Bugün nasılsın? Kalan işlerini ve zaman planını birlikte organize edebiliriz.\n\n"
+                    "💡 *Bana 'görevlerimi sırala' diyerek planını listelememi isteyebilir veya zaman çakışmalarını incelememi talep edebilirsin.*"
+                )
+            elif any(k in msg_lower for k in ["nasılsın", "nasilsin", "keyifler"]):
+                ai_response = (
+                    "Harikayım, teşekkür ederim! Glide asistanı olarak sana zaman yönetiminde yardım etmekten büyük keyif alıyorum.\n\n"
+                    "Bugünkü görev listeni sıralamamı veya planındaki çakışmaları analiz etmemi ister misin?"
+                )
+            elif wants_help:
+                ai_response = (
+                    f"Ben senin akıllı zaman yönetimi asistanın **Glide AI**. Sana şu konularda yardımcı olabilirim:\n\n"
+                    "1. 🕒 **Zaman Çakışması Analizi:** Aynı saate denk gelen çakışan görevlerini bulurum.\n"
+                    "2. ⭐ **Akıllı Öncelik Sıralaması:** Görevlerini önem derecesine göre dizerim.\n"
+                    "3. 💬 **Sohbet & Motivasyon:** Günlük planın hakkında konuşup verimli tavsiyeler veririm.\n\n"
+                    "Denemek için bana bir mesaj yazabilirsin!"
+                )
             else:
                 ai_response = (
-                    "Glide yapay zeka asistanı çevrimdışı (simülasyon) modunda çalışıyor. "
-                    "Gerçek zamanlı olarak Gemini üretken zekasını deneyimlemek için `.env` dosyanıza kendi API anahtarınızı ekleyebilirsiniz.\n\n"
-                    "Şu anki görevlerini öncelik sırasına koymamı veya saat çakışmalarını incelememi ister misin?"
+                    f"Sohbet mesajını aldım! Glide asistanı olarak seninle konuşmak harika.\n\n"
+                    "Bu çevrimdışı simülasyon modunda sana en iyi şekilde yardımcı olmak için çalışıyorum. "
+                    "Görevlerini öncelik sırasına göre sıralamamı veya saat çakışmalarını kontrol etmemi ister misin? "
+                    "Ya da gerçek zamanlı sınırsız zeka için `.env` dosyana API anahtarını ekleyebilirsin!"
                 )
             
         # 4. Yapay zekanın yanıtını kaydet
