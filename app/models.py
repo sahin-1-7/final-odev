@@ -14,6 +14,7 @@ class User(db.Model, UserMixin):
     # İlişkiler (Kullanıcı silindiğinde görevleri de silinir)
     tasks = db.relationship('Task', backref='owner', lazy=True, cascade="all, delete-orphan")
     suggestions = db.relationship('AISuggestion', backref='owner', lazy=True, cascade="all, delete-orphan")
+    chat_history = db.relationship('ChatHistory', backref='owner', lazy=True, cascade="all, delete-orphan")
 
 class Task(db.Model):
     __tablename__ = 'tasks'
@@ -36,6 +37,17 @@ class AISuggestion(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     suggestion_text = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Kullanıcı ilişkisi
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+class ChatHistory(db.Model):
+    __tablename__ = 'chat_histories'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.Text, nullable=False)
+    sender = db.Column(db.String(10), nullable=False) # 'user' veya 'ai'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Kullanıcı ilişkisi

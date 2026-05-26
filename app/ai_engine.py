@@ -1,7 +1,106 @@
 import os
 import re
+import json
+import urllib.request
+import urllib.error
 from datetime import datetime
 from app.utils import parse_time_to_minutes
+
+def get_gemini_suggestion(tasks_data):
+    """Google Gemini API'yi doğrudan çağırarak görevleri akıllıca analiz eder."""
+    api_key = os.environ.get('GEMINI_API_KEY')
+    if not api_key:
+        return None
+        
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    
+    prompt = (
+        "Sen akıllı zaman yönetimi ve üretkenlik asistanı 'Glide'sın. "
+        "Aşağıda bir kullanıcının zaman planı ve görev listesi yer almaktadır. Lütfen bu listeyi bir yapay zeka uzmanı olarak analiz et.\n\n"
+        "Görev Verileri:\n"
+        f"{tasks_data}\n\n"
+        "Lütfen şu analizleri içeren zengin ve profesyonel bir Markdown raporu hazırla:\n"
+        "1. Genel Durum Analizi: Toplam iş yükü ve öncelik dağılımı değerlendirmesi.\n"
+        "2. Zaman Çakışması Kontrolü: Aynı saat aralığına denk gelen veya birbiriyle çakışan görevleri açıkça belirt (örn: 09:00 - 10:00 arası ile 09:30 - 11:00 arası çakışır).\n"
+        "3. Yapay Zeka Tarafından Optimize Edilmiş Zaman Çizelgesi: Görevleri en yüksek üretkenlik sağlayacak şekilde saat ve öncelik derecelerine göre sıralayarak listele.\n"
+        "4. Kişiselleştirilmiş Üretkenlik Tavsiyeleri: Eisenhower Matrisi, 80/20 kuralı veya Pomodoro gibi bilimsel metodolojilere dayalı, bu kişiye özel 3 pratik tavsiye sun.\n\n"
+        "Yanıtını doğrudan Jinja2 şablonuna basılacak şekilde Markdown formatında dönüştür. Ekstra giriş/açıklama yapmadan doğrudan analiz raporu başlığıyla başla."
+    )
+    
+    headers = {'Content-Type': 'application/json'}
+    data = {
+        "contents": [{
+            "parts": [{
+                "text": prompt
+            }]
+        }]
+    }
+    
+    try:
+        req = urllib.request.Request(
+            url, 
+            data=json.dumps(data).encode('utf-8'), 
+            headers=headers, 
+            method='POST'
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
+            res_data = json.loads(response.read().decode('utf-8'))
+            return res_data['candidates'][0]['content']['parts'][0]['text']
+    except Exception as e:
+        print(f"[GEMINI API HATA] Yapay zeka motoru çağrılamadı, kural tabanlı motora geçiliyor: {e}")
+        return None
+
+def get_gemini_chat_response(user_message, chat_history_list, tasks_data):
+    """
+    Kullanıcının görevlerini, konuşma geçmişini ve son mesajını alarak
+    Google Gemini API'den interaktif, planlama odaklı bir yanıt üretir.
+    """
+    api_key = os.environ.get('GEMINI_API_KEY')
+    if not api_key:
+        return None
+        
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    
+    history_str = ""
+    for msg in chat_history_list:
+        role = "Kullanıcı" if msg['sender'] == 'user' else "Asistan (Sen)"
+        history_str += f"{role}: {msg['message']}\n"
+        
+    prompt = (
+        "Sen akıllı zaman yönetimi ve verimlilik asistanı 'Glide'sın. "
+        "Kullanıcı ile dost canlısı ve çözüm odaklı konuşarak onun günlük planını optimize etmesine yardımcı oluyorsun.\n\n"
+        f"Kullanıcının Güncel Görev Listesi:\n{tasks_data}\n\n"
+        f"Konuşma Geçmişiniz:\n{history_str}\n"
+        f"Kullanıcının Son Mesajı: {user_message}\n\n"
+        "Lütfen bu son mesaja göre kullanıcının planını analiz et, sorularını yanıtla veya görevlerini sırala. "
+        "Eğer kullanıcı saat, periyot veya öncelik değişikliği gibi taleplerde bulunuyorsa veya enerjisine göre işleri kaydırmanı istiyorsa, "
+        "ona optimize edilmiş bir zaman çizelgesi sun ve bunu onaylayıp onaylamadığını sor.\n"
+        "Mesajının sonunda her zaman konuşmayı devam ettirecek yönlendirici ve nazik bir soru sor. "
+        "Markdown biçimlendirmesi kullan. Çok uzun olmayan, akıcı ve doğal bir konuşma dili tercih et."
+    )
+    
+    headers = {'Content-Type': 'application/json'}
+    data = {
+        "contents": [{
+            "parts": [{
+                "text": prompt
+            }]
+        }]
+    }
+    
+    try:
+        req = urllib.request.Request(
+            url, 
+            data=json.dumps(data).encode('utf-8'), 
+            headers=headers, 
+            method='POST'
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
+            res_data = json.loads(response.read().decode('utf-8'))
+            return res_data['candidates'][0]['content']['parts'][0]['text']
+    except Exception as e:
+        print(f"[GEMINI CHAT HATA] Sohbet motoru çağrılamadı: {e}")
+        return None
 
 def check_overlap(task1, task2):
     """İki görevin saat aralıklarının çakışıp çakışmadığını kontrol eder."""
@@ -23,6 +122,22 @@ def analyze_and_optimize_tasks(tasks):
     if not tasks:
         return "Henüz değerlendirilecek bir görev eklemediniz. Lütfen birkaç görev ekleyin."
 
+    # 1. Görev verilerini metne dönüştür
+    tasks_list = []
+    for idx, t in enumerate(tasks, 1):
+        tasks_list.append(
+            f"Görev {idx}: Başlık: '{t.title}', Açıklama: '{t.description}', "
+            f"Periyot: '{t.period}', Öncelik: '{t.priority}', "
+            f"Saat Aralığı: '{t.start_time} - {t.end_time}', Durum: '{'Tamamlandı' if t.is_completed else 'Bekliyor'}'"
+        )
+    tasks_data = "\n".join(tasks_list)
+
+    # 2. Gerçek Yapay Zeka (Gemini) Raporunu Dene
+    gemini_report = get_gemini_suggestion(tasks_data)
+    if gemini_report:
+        return gemini_report
+
+    # 3. FALLBACK: Kural Tabanlı Lokal Analiz Motoru (Çevrimdışı Mod)
     conflicts = []
     # Çakışma analizi (Sadece aynı periyotta olan görevler çakışabilir)
     for i in range(len(tasks)):
