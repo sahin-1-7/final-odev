@@ -1,6 +1,7 @@
 from flask import render_template, redirect, url_for, request, flash, jsonify, current_app
 import os
 from flask_login import login_required, current_user
+from flask_babel import gettext as _
 from app.blueprints.tasks import tasks_bp
 from app.extensions import db
 from app.models import Task, AISuggestion, ChatHistory
@@ -51,13 +52,33 @@ def add_task():
     description = request.form.get('description', '').strip()
     period = request.form.get('period', 'daily')
     priority = request.form.get('priority', 'Medium')
-    start_time = request.form.get('start_time', '09:00')
-    end_time = request.form.get('end_time', '10:00')
+    start_time = request.form.get('start_time', '09:00').strip()
+    end_time = request.form.get('end_time', '10:00').strip()
     
     if not title:
-        flash('Görev başlığı boş bırakılamaz.', 'danger')
+        flash(_('Görev başlığı boş bırakılamaz.'), 'danger')
         return redirect(url_for('tasks.dashboard'))
         
+    if not start_time or not end_time:
+        flash(_('Başlangıç ve bitiş saatleri boş bırakılamaz.'), 'danger')
+        return redirect(url_for('tasks.dashboard'))
+        
+    start_min = parse_time_to_minutes(start_time)
+    end_min = parse_time_to_minutes(end_time)
+    
+    if start_min >= end_min:
+        flash(_('Görev başlangıç saati bitiş saatinden büyük veya eşit olamaz.'), 'danger')
+        return redirect(url_for('tasks.dashboard'))
+        
+    # Zaman Çakışması Kontrolü
+    existing_tasks = Task.query.filter_by(user_id=current_user.id, period=period).all()
+    for t in existing_tasks:
+        t_start = parse_time_to_minutes(t.start_time)
+        t_end = parse_time_to_minutes(t.end_time)
+        if max(start_min, t_start) < min(end_min, t_end):
+            flash(_('Zaman çakışması tespit edildi: Bu saatler arasında zaten başka bir göreviniz ("%(title)s") bulunmaktadır.', title=t.title), 'danger')
+            return redirect(url_for('tasks.dashboard'))
+            
     new_task = Task(
         title=title,
         description=description,
@@ -71,7 +92,59 @@ def add_task():
     db.session.add(new_task)
     db.session.commit()
     
-    flash('Görev başarıyla eklendi!', 'success')
+    flash(_('Görev başarıyla eklendi!'), 'success')
+    return redirect(url_for('tasks.dashboard'))
+
+@tasks_bp.route('/edit/<int:task_id>', methods=['POST'])
+@login_required
+def edit_task(task_id):
+    task = Task.query.filter_by(id=task_id, user_id=current_user.id).first_or_404()
+    
+    title = request.form.get('title', '').strip()
+    description = request.form.get('description', '').strip()
+    period = request.form.get('period', 'daily')
+    priority = request.form.get('priority', 'Medium')
+    start_time = request.form.get('start_time', '09:00').strip()
+    end_time = request.form.get('end_time', '10:00').strip()
+    
+    if not title:
+        flash(_('Görev başlığı boş bırakılamaz.'), 'danger')
+        return redirect(url_for('tasks.dashboard'))
+        
+    if not start_time or not end_time:
+        flash(_('Başlangıç ve bitiş saatleri boş bırakılamaz.'), 'danger')
+        return redirect(url_for('tasks.dashboard'))
+        
+    start_min = parse_time_to_minutes(start_time)
+    end_min = parse_time_to_minutes(end_time)
+    
+    if start_min >= end_min:
+        flash(_('Görev başlangıç saati bitiş saatinden büyük veya eşit olamaz.'), 'danger')
+        return redirect(url_for('tasks.dashboard'))
+        
+    # Zaman Çakışması Kontrolü (Kendisi hariç)
+    existing_tasks = Task.query.filter(
+        Task.user_id == current_user.id,
+        Task.period == period,
+        Task.id != task_id
+    ).all()
+    
+    for t in existing_tasks:
+        t_start = parse_time_to_minutes(t.start_time)
+        t_end = parse_time_to_minutes(t.end_time)
+        if max(start_min, t_start) < min(end_min, t_end):
+            flash(_('Zaman çakışması tespit edildi: Bu saatler arasında zaten başka bir göreviniz ("%(title)s") bulunmaktadır.', title=t.title), 'danger')
+            return redirect(url_for('tasks.dashboard'))
+            
+    task.title = title
+    task.description = description
+    task.period = period
+    task.priority = priority
+    task.start_time = start_time
+    task.end_time = end_time
+    
+    db.session.commit()
+    flash(_('Görev başarıyla güncellendi!'), 'success')
     return redirect(url_for('tasks.dashboard'))
 
 @tasks_bp.route('/complete/<int:task_id>', methods=['POST'])
@@ -81,8 +154,8 @@ def complete_task(task_id):
     task.is_completed = not task.is_completed
     db.session.commit()
     
-    status_str = "tamamlandı" if task.is_completed else "tamamlanmadı"
-    flash(f'"{task.title}" görevi {status_str} olarak işaretlendi.', 'success')
+    status_str = _("tamamlandı") if task.is_completed else _("tamamlanmadı")
+    flash(_('"%(title)s" görevi %(status)s olarak işaretlendi.', title=task.title, status=status_str), 'success')
     return redirect(url_for('tasks.dashboard'))
 
 @tasks_bp.route('/delete/<int:task_id>', methods=['POST'])
@@ -92,7 +165,7 @@ def delete_task(task_id):
     db.session.delete(task)
     db.session.commit()
     
-    flash(f'"{task.title}" görevi başarıyla silindi.', 'success')
+    flash(_('"%(title)s" görevi başarıyla silindi.', title=task.title), 'success')
     return redirect(url_for('tasks.dashboard'))
 
 @tasks_bp.route('/ai/optimize', methods=['POST'])
@@ -100,7 +173,7 @@ def delete_task(task_id):
 def ai_optimize():
     tasks = Task.query.filter_by(user_id=current_user.id).all()
     if not tasks:
-        flash('Yapay zeka analizi için en az bir görev tanımlamış olmalısınız.', 'warning')
+        flash(_('Yapay zeka analizi için en az bir görev tanımlamış olmalısınız.'), 'warning')
         return redirect(url_for('tasks.dashboard'))
         
     # AI analizi ve optimizasyon motorunu çalıştır
@@ -111,7 +184,7 @@ def ai_optimize():
     db.session.add(new_suggestion)
     db.session.commit()
     
-    flash('Görevleriniz yapay zeka tarafından başarıyla analiz edildi!', 'success')
+    flash(_('Görevleriniz yapay zeka tarafından başarıyla analiz edildi!'), 'success')
     return redirect(url_for('tasks.ai_planner'))
 
 @tasks_bp.route('/ai/planner')

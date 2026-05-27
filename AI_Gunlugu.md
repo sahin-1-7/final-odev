@@ -58,6 +58,10 @@ Bu günlük, **Glide** projesinin geliştirilmesi sürecinde, yapay zeka kodlama
   * **Spam & DoS Hız Sınırlaması (Rate Limiting):** `User` modeline `last_reset_request_at` alanı eklenerek aynı e-postaya peş peşe 120 saniyeden kısa sürelerle şifre sıfırlama maili talep edilmesi engellendi.
 * **AI Katkısı:** AI, itsdangerous token'larının tek kullanımlık hale getirilmesi için şifre hash tabanlı durumsuz imzalama modelini sundu. Ayrıca Flask-Migrate entegrasyonuyla veritabanı şemasının güvenle güncellenmesini ve yerel test betikleriyle doğrulanmasını sağladı.
 
+### 🔹 Aşama 11: Görev CRUD, Zaman Çakışma Validasyonu ve Çoklu Dil Raporlama
+* **Yapılan İşler (3. Gün - 6. Oturum Notu):** Projenin omurgasını oluşturan Görev CRUD işlemlerini tamamladık. Veritabanı tutarlılığı ve veri doğruluğu için kritik olan 'Zaman Çakışma Algoritması'nı kurduk. `(start1 < end2) & (end1 > start2)` mantığıyla iki görevin çakışmasını backend seviyesinde engelledik. Eş zamanlı olarak, listeleme ekranına SQL LIKE tabanlı arama motoru entegre ederek +3 bonus puan, tüm mesajları Flask-Babel ile sarmallayarak da +3 bonus puan daha kazandık. (Görsel: AI_Conflict_Check_Algorithm.png)
+* **AI Katkısı:** AI asistanı, zaman çakışma koşullarının in-memory SQLite tabanlı test senaryolarını yazarak algoritmayı otomatik olarak doğruladı. Ayrıca, AI analiz ve planlama raporunun (Gemini ve yerel motor) kullanıcının seçtiği dile göre dinamik olarak Türkçe veya İngilizce dilinde üretilmesini sağlayan yerelleştirme katmanını kodladı.
+
 ---
 
 ## 💡 Yapay Zeka Prompt Mühendisliği ve İş Birliği Örnekleri

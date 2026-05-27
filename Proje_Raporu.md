@@ -145,6 +145,7 @@ erDiagram
 ### 📅 Dinamik Dashboard ve CRUD
 * Kullanıcılar kolayca yeni görevler ekleyebilir, mevcut görevleri listeleyebilir, tamamlandı olarak işaretleyebilir veya tamamen silebilir.
 * Görevler eklenirken başlangıç ve bitiş saatleri girilir (Örn: 09:00 - 10:30).
+* **Dinamik Görev Güncelleme (Edit):** Görev satırlarına modern "Düzenle" butonları yerleştirilmiş, koyu tema cam estetiğine uyumlu Bootstrap 5 modal pencereleri entegre edilmiştir. Kullanıcılar görevlerini sayfadan ayrılmadan güncelleyebilirler.
 
 ### 🔍 SQL LIKE Tabanlı Hızlı Arama & Filtreleme (Bonus +3 Puan)
 * Arama çubuğuna yazılan anahtar kelimeler, SQL'deki `LIKE` operatörü kullanılarak veritabanında görev başlığı veya açıklamasında gerçek zamanlı aranır.
@@ -153,10 +154,11 @@ erDiagram
 ### 🌐 Çoklu Dil Desteği (Flask-Babel Entegrasyonu) (Bonus +5 Puan)
 * Sistem Türkçe ve İngilizce dil seçeneklerini tam olarak destekler.
 * Dil seçimi üst menüdeki butonlar aracılığıyla dinamik olarak değiştirilebilir ve kullanıcının seçimi oturumda (`session`) saklanır.
-* Jinja şablonlarındaki tüm metinler ve hata mesajları `gettext` (`_()`) fonksiyonları ile yerelleştirilmiştir.
+* Jinja şablonlarındaki tüm metinler, modal butonları, validasyon hata mesajları ve durum flash uyarıları `gettext` (`_()`) fonksiyonları ile yerelleştirilmiş ve derlenmiştir.
 
 ### 🧠 Yapay Zeka (AI) Planlama ve Zaman Çakışması Analizi (Ana Tema)
-* **Zaman Çakışması Algoritması:** Sistem, kullanıcının eklediği görevlerin saatlerini analiz eder. Eğer aynı periyotta yer alan iki görevin saat aralıkları çakışıyorsa (Örn: 10:00-11:00 arası spor ve 10:30-12:00 arası toplantı), sistem bunu anında bulur ve kullanıcıyı uyarır.
+* **Zaman Çakışması Algoritması:** Sistem, kullanıcının eklediği görevlerin saatlerini analiz eder. Eğer aynı periyotta yer alan iki görevin saat aralıkları çakışıyorsa (Örn: 10:00-11:00 arası spor ve 10:30-12:00 arası toplantı), sistem bunu anında bulur ve kullanıcıyı uyarır. Gelişmiş çakışma doğrulama matematiksel modeli `max(S1, S2) < min(E1, E2)` backend seviyesinde çalıştırılmaktadır.
+* **Bilingual AI Planlama Raporu:** Yapay zeka planlayıcı sekmesinde oluşturulan zengin Markdown raporları (hem Gemini API hem de yerel fallback motoru), kullanıcının aktif dil seçimine (`en` veya `tr`) göre **tamamen dinamik olarak algılanıp o dilde oluşturulur**.
 * **Akıllı Öncelik Sıralaması:** Görevler, AI motoru tarafından öncelik ağırlıklarına göre (Yüksek > Orta > Düşük) ve başlangıç saatlerine göre sıralanarak optimize edilmiş bir zaman çizelgesi haline getirilir.
 * **Kişiselleştirilmiş Öneriler:** Kullanıcının iş yükü analiz edilerek (örneğin günde 3'ten fazla yüksek öncelikli iş varsa 80/20 kuralı önerisi vb.) dinamik ve bilimsel verimlilik tavsiyeleri sunulur.
 * **Modernize Edilmiş Yapay Zeka Arayüzü & Ek Etkileşimler:**

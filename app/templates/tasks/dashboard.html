@@ -152,12 +152,77 @@
                                         </div>
                                     </div>
                                     
-                                    <!-- Silme Butonu -->
-                                    <form method="POST" action="{{ url_for('tasks.delete_task', task_id=task.id) }}" class="m-0">
-                                        <button type="submit" class="btn btn-sm btn-outline-light border-0 text-danger-hover rounded-circle p-1.5" onclick="return confirm('{{ _('Bu görevi silmek istediğinize emin misiniz?') }}')">
-                                            <i class="bi bi-trash3 fs-5"></i>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <!-- Düzenle Butonu (Modalı Tetikler) -->
+                                        <button type="button" class="btn btn-sm btn-outline-light border-0 rounded-circle p-1.5 text-info" data-bs-toggle="modal" data-bs-target="#editTaskModal{{ task.id }}" title="{{ _('Görevi Düzenle') }}">
+                                            <i class="bi bi-pencil-square fs-5"></i>
                                         </button>
-                                    </form>
+                                        
+                                        <!-- Silme Butonu -->
+                                        <form method="POST" action="{{ url_for('tasks.delete_task', task_id=task.id) }}" class="m-0">
+                                            <button type="submit" class="btn btn-sm btn-outline-light border-0 text-danger rounded-circle p-1.5" onclick="return confirm('{{ _('Bu görevi silmek istediğinize emin misiniz?') }}')" title="{{ _('Görevi Sil') }}">
+                                                <i class="bi bi-trash3 fs-5"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- Düzenleme Modalı -->
+                                <div class="modal fade" id="editTaskModal{{ task.id }}" tabindex="-1" aria-labelledby="editTaskModalLabel{{ task.id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 bg-dark text-white rounded-4 shadow">
+                                            <div class="modal-header border-secondary py-3">
+                                                <h5 class="modal-title fw-bold" id="editTaskModalLabel{{ task.id }}">
+                                                    <i class="bi bi-pencil-square text-info me-2"></i>{{ _('Görevi Düzenle') }}
+                                                </h5>
+                                                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form method="POST" action="{{ url_for('tasks.edit_task', task_id=task.id) }}">
+                                                <div class="modal-body p-4 text-start">
+                                                    <div class="mb-3">
+                                                        <label for="title{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Görev Başlığı') }}</label>
+                                                        <input type="text" class="form-control border-secondary bg-dark text-white" id="title{{ task.id }}" name="title" value="{{ task.title }}" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="description{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Açıklama') }}</label>
+                                                        <textarea class="form-control border-secondary bg-dark text-white" id="description{{ task.id }}" name="description" rows="2">{{ task.description or '' }}</textarea>
+                                                    </div>
+                                                    <div class="row g-2 mb-3">
+                                                        <div class="col-6">
+                                                            <label for="period{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Periyot') }}</label>
+                                                            <select class="form-select border-secondary bg-dark text-white" id="period{{ task.id }}" name="period">
+                                                                <option value="daily" {% if task.period == 'daily' %}selected{% endif %}>{{ _('Günlük') }}</option>
+                                                                <option value="weekly" {% if task.period == 'weekly' %}selected{% endif %}>{{ _('Haftalık') }}</option>
+                                                                <option value="monthly" {% if task.period == 'monthly' %}selected{% endif %}>{{ _('Aylık') }}</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label for="priority{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Öncelik') }}</label>
+                                                            <select class="form-select border-secondary bg-dark text-white" id="priority{{ task.id }}" name="priority">
+                                                                <option value="High" class="text-danger" {% if task.priority == 'High' %}selected{% endif %}>🔴 {{ _('Yüksek') }}</option>
+                                                                <option value="Medium" class="text-warning" {% if task.priority == 'Medium' %}selected{% endif %}>🟡 {{ _('Orta') }}</option>
+                                                                <option value="Low" class="text-success" {% if task.priority == 'Low' %}selected{% endif %}>🟢 {{ _('Düşük') }}</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row g-2">
+                                                        <div class="col-6">
+                                                            <label for="start_time{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Başlangıç') }}</label>
+                                                            <input type="time" class="form-control border-secondary bg-dark text-white" id="start_time{{ task.id }}" name="start_time" value="{{ task.start_time }}" required>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label for="end_time{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Bitiş') }}</label>
+                                                            <input type="time" class="form-control border-secondary bg-dark text-white" id="end_time{{ task.id }}" name="end_time" value="{{ task.end_time }}" required>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-secondary py-3">
+                                                    <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">{{ _('İptal') }}</button>
+                                                    <button type="submit" class="btn btn-primary rounded-pill px-4">{{ _('Değişiklikleri Kaydet') }}</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
                                 </div>
                             {% endfor %}
                         </div>

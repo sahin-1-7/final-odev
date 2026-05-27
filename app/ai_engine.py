@@ -6,7 +6,7 @@ import urllib.error
 from datetime import datetime
 from app.utils import parse_time_to_minutes
 
-def get_gemini_suggestion(tasks_data):
+def get_gemini_suggestion(tasks_data, lang='tr'):
     """Google Gemini API'yi doğrudan çağırarak görevleri akıllıca analiz eder."""
     api_key = os.environ.get('GEMINI_API_KEY')
     if not api_key:
@@ -15,18 +15,32 @@ def get_gemini_suggestion(tasks_data):
     model_name = os.environ.get('GEMINI_MODEL', 'gemini-1.5-flash')
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
     
-    prompt = (
-        "Sen akıllı zaman yönetimi ve üretkenlik asistanı 'Glide'sın. "
-        "Aşağıda bir kullanıcının zaman planı ve görev listesi yer almaktadır. Lütfen bu listeyi bir yapay zeka uzmanı olarak analiz et.\n\n"
-        "Görev Verileri:\n"
-        f"{tasks_data}\n\n"
-        "Lütfen şu analizleri içeren zengin ve profesyonel bir Markdown raporu hazırla:\n"
-        "1. Genel Durum Analizi: Toplam iş yükü ve öncelik dağılımı değerlendirmesi.\n"
-        "2. Zaman Çakışması Kontrolü: Aynı saat aralığına denk gelen veya birbiriyle çakışan görevleri açıkça belirt (örn: 09:00 - 10:00 arası ile 09:30 - 11:00 arası çakışır).\n"
-        "3. Yapay Zeka Tarafından Optimize Edilmiş Zaman Çizelgesi: Görevleri en yüksek üretkenlik sağlayacak şekilde saat ve öncelik derecelerine göre sıralayarak listele.\n"
-        "4. Kişiselleştirilmiş Üretkenlik Tavsiyeleri: Eisenhower Matrisi, 80/20 kuralı veya Pomodoro gibi bilimsel metodolojilere dayalı, bu kişiye özel 3 pratik tavsiye sun.\n\n"
-        "Yanıtını doğrudan Jinja2 şablonuna basılacak şekilde Markdown formatında dönüştür. Ekstra giriş/açıklama yapmadan doğrudan analiz raporu başlığıyla başla."
-    )
+    if lang == 'en':
+        prompt = (
+            "You are 'Glide', an intelligent time management and productivity assistant. "
+            "Below is a user's schedule and task list. Please analyze this list as an AI expert.\n\n"
+            "Task Data:\n"
+            f"{tasks_data}\n\n"
+            "Please prepare a rich and professional Markdown report containing the following analyses:\n"
+            "1. General Status Analysis: Evaluation of total workload and priority distribution.\n"
+            "2. Time Overlap Check: Clearly indicate any tasks that overlap or conflict in times (e.g. 09:00 - 10:00 overlaps with 09:30 - 11:00).\n"
+            "3. AI-Optimized Schedule: List tasks sorted by time and priority for maximum productivity.\n"
+            "4. Personalized Productivity Tips: Provide 3 practical tips customized for this person, based on scientific methodologies such as the Eisenhower Matrix, 80/20 rule, or Pomodoro.\n\n"
+            "Format your output directly in Markdown to be rendered in a Jinja2 template. Start directly with the analysis report title without any intro/meta explanation."
+        )
+    else:
+        prompt = (
+            "Sen akıllı zaman yönetimi ve üretkenlik asistanı 'Glide'sın. "
+            "Aşağıda bir kullanıcının zaman planı ve görev listesi yer almaktadır. Lütfen bu listeyi bir yapay zeka uzmanı olarak analiz et.\n\n"
+            "Görev Verileri:\n"
+            f"{tasks_data}\n\n"
+            "Lütfen şu analizleri içeren zengin ve profesyonel bir Markdown raporu hazırla:\n"
+            "1. Genel Durum Analizi: Toplam iş yükü ve öncelik dağılımı değerlendirmesi.\n"
+            "2. Zaman Çakışması Kontrolü: Aynı saat aralığına denk gelen veya birbiriyle çakışan görevleri açıkça belirt (örn: 09:00 - 10:00 arası ile 09:30 - 11:00 arası çakışır).\n"
+            "3. Yapay Zeka Tarafından Optimize Edilmiş Zaman Çizelgesi: Görevleri en yüksek üretkenlik sağlayacak şekilde saat ve öncelik derecelerine göre sıralayarak listele.\n"
+            "4. Kişiselleştirilmiş Üretkenlik Tavsiyeleri: Eisenhower Matrisi, 80/20 kuralı veya Pomodoro gibi bilimsel metodolojilere dayalı, bu kişiye özel 3 pratik tavsiye sun.\n\n"
+            "Yanıtını doğrudan Jinja2 şablonuna basılacak şekilde Markdown formatında dönüştür. Ekstra giriş/açıklama yapmadan doğrudan analiz raporu başlığıyla başla."
+        )
     
     headers = {'Content-Type': 'application/json'}
     data = {
@@ -127,21 +141,38 @@ def analyze_and_optimize_tasks(tasks):
     - Öncelik ve süre analizi yapar.
     - Yapay zeka tavsiyeleri ve yeniden sıralanmış akıllı bir plan üretir (Markdown formatında).
     """
+    try:
+        from flask_babel import get_locale
+        lang = str(get_locale())
+    except Exception:
+        lang = 'tr'
+
     if not tasks:
+        if lang == 'en':
+            return "You have not added any tasks to evaluate yet. Please add some tasks."
         return "Henüz değerlendirilecek bir görev eklemediniz. Lütfen birkaç görev ekleyin."
 
-    # 1. Görev verilerini metne dönüştür
+    # 1. Görev verilerini metne dönüştür (Seçili dile göre)
     tasks_list = []
     for idx, t in enumerate(tasks, 1):
-        tasks_list.append(
-            f"Görev {idx}: Başlık: '{t.title}', Açıklama: '{t.description}', "
-            f"Periyot: '{t.period}', Öncelik: '{t.priority}', "
-            f"Saat Aralığı: '{t.start_time} - {t.end_time}', Durum: '{'Tamamlandı' if t.is_completed else 'Bekliyor'}'"
-        )
+        if lang == 'en':
+            status = 'Completed' if t.is_completed else 'Pending'
+            tasks_list.append(
+                f"Task {idx}: Title: '{t.title}', Description: '{t.description}', "
+                f"Period: '{t.period}', Priority: '{t.priority}', "
+                f"Time Interval: '{t.start_time} - {t.end_time}', Status: '{status}'"
+            )
+        else:
+            status = 'Tamamlandı' if t.is_completed else 'Bekliyor'
+            tasks_list.append(
+                f"Görev {idx}: Başlık: '{t.title}', Açıklama: '{t.description}', "
+                f"Periyot: '{t.period}', Öncelik: '{t.priority}', "
+                f"Saat Aralığı: '{t.start_time} - {t.end_time}', Durum: '{status}'"
+            )
     tasks_data = "\n".join(tasks_list)
 
-    # 2. Gerçek Yapay Zeka (Gemini) Raporunu Dene
-    gemini_report = get_gemini_suggestion(tasks_data)
+    # 2. Gerçek Yapay Zeka (Gemini) Raporunu Dene (Dil parametresi ile)
+    gemini_report = get_gemini_suggestion(tasks_data, lang=lang)
     if gemini_report:
         return gemini_report
 
@@ -166,67 +197,130 @@ def analyze_and_optimize_tasks(tasks):
         )
     )
 
-    # Dinamik Akıllı Rapor Oluşturma
+    # Dinamik Akıllı Rapor Oluşturma (Seçili dile göre)
     report_lines = []
-    report_lines.append("### 🧠 Yapay Zeka Planlama ve Analiz Raporu\n")
     
-    # 1. Genel Durum Analizi
-    total_tasks = len(tasks)
-    high_count = sum(1 for t in tasks if t.priority == 'High')
-    medium_count = sum(1 for t in tasks if t.priority == 'Medium')
-    low_count = sum(1 for t in tasks if t.priority == 'Low')
-    completed_count = sum(1 for t in tasks if t.is_completed)
-    
-    report_lines.append(f"🔍 **Genel Plan Değerlendirmesi:**")
-    report_lines.append(f"Listenizde toplam **{total_tasks}** adet tanımlı görev bulunmaktadır. Bunların **{completed_count}** tanesi tamamlanmış durumdadır.")
-    report_lines.append(f"- 🔥 **Yüksek Öncelikli:** {high_count} görev")
-    report_lines.append(f"- ⚡ **Orta Öncelikli:** {medium_count} görev")
-    report_lines.append(f"- 🍃 **Düşük Öncelikli:** {low_count} görev\n")
+    if lang == 'en':
+        report_lines.append("### 🧠 AI Planning and Analysis Report\n")
+        
+        # 1. Genel Durum Analizi
+        total_tasks = len(tasks)
+        high_count = sum(1 for t in tasks if t.priority == 'High')
+        medium_count = sum(1 for t in tasks if t.priority == 'Medium')
+        low_count = sum(1 for t in tasks if t.priority == 'Low')
+        completed_count = sum(1 for t in tasks if t.is_completed)
+        
+        report_lines.append(f"🔍 **General Plan Evaluation:**")
+        report_lines.append(f"You have a total of **{total_tasks}** defined tasks in your list. **{completed_count}** of them are completed.")
+        report_lines.append(f"- 🔥 **High Priority:** {high_count} tasks")
+        report_lines.append(f"- ⚡ **Medium Priority:** {medium_count} tasks")
+        report_lines.append(f"- 🍃 **Low Priority:** {low_count} tasks\n")
 
-    # 2. Çakışma Analizi ve Uyarılar
-    report_lines.append("### ⚠️ Zaman Çakışması Analizi")
-    if conflicts:
-        report_lines.append("Zamanlama planınızda bazı görevlerin çakıştığı tespit edildi. Aynı anda iki yerde olamazsınız! Lütfen aşağıdaki çakışmaları gözden geçirin:")
-        for t1, t2 in conflicts:
+        # 2. Çakışma Analizi ve Uyarılar
+        report_lines.append("### ⚠️ Time Overlap Analysis")
+        if conflicts:
+            report_lines.append("Some tasks in your schedule overlap. You cannot be in two places at once! Please review the following conflicts:")
+            for t1, t2 in conflicts:
+                report_lines.append(
+                    f"- **Conflict Detected:** [{t1.start_time} - {t1.end_time}] *\"{t1.title}\"* conflicts with "
+                    f"[{t2.start_time} - {t2.end_time}] *\"{t2.title}\"* (in {t1.period} period)."
+                )
+            report_lines.append("\n💡 *Tip: You can update the time slot of the lower-priority task or postpone it to another day.*\n")
+        else:
+            report_lines.append("🎉 Excellent! No time conflicts detected in your schedule. Your tasks seem well-balanced throughout the day.\n")
+
+        # 3. AI Akıllı Sıralama Önerisi
+        report_lines.append("### 📈 AI-Optimized Schedule")
+        report_lines.append("To maximize your productivity, your tasks have been reordered based on priority, peak energy hours, and periods:")
+        
+        current_period = None
+        for idx, task in enumerate(sorted_tasks, 1):
+            if task.period != current_period:
+                current_period = task.period
+                period_name = "DAILY" if current_period == 'daily' else "WEEKLY" if current_period == 'weekly' else "MONTHLY"
+                report_lines.append(f"\n📅 **{period_name} TASKS:**")
+            
+            status_icon = "✅" if task.is_completed else "⏳"
+            priority_icon = "🔴" if task.priority == 'High' else "🟡" if task.priority == 'Medium' else "🟢"
             report_lines.append(
-                f"- **Çakışma Tespit Edildi:** [{t1.start_time} - {t1.end_time}] saatlerindeki *\"{t1.title}\"* ile "
-                f"[{t2.start_time} - {t2.end_time}] saatlerindeki *\"{t2.title}\"* ({t1.period} periyodunda) çakışıyor."
+                f"{idx}. {status_icon} {priority_icon} **[{task.start_time} - {task.end_time}]** {task.title} "
+                f"*(Priority: {task.priority})*"
             )
-        report_lines.append("\n💡 *Öneri: Çakışan görevlerden daha az öncelikli olanın saat aralığını güncelleyebilir veya başka bir güne erteleyebilirsiniz.*\n")
-    else:
-        report_lines.append("🎉 Harika! Zaman çizelgenizde herhangi bir zaman çakışması tespit edilmedi. Görevleriniz gün içine dengeli dağıtılmış görünüyor.\n")
+        report_lines.append("")
 
-    # 3. AI Akıllı Sıralama Önerisi
-    report_lines.append("### 📈 Yapay Zeka Tarafından Optimize Edilmiş Sıralama")
-    report_lines.append("Üretkenliğinizi en üst düzeye çıkarmak için görevleriniz öncelik sırasına, enerjinizin en yüksek olacağı saatlere ve periyotlara göre yeniden dizilmiştir:")
-    
-    current_period = None
-    for idx, task in enumerate(sorted_tasks, 1):
-        if task.period != current_period:
-            current_period = task.period
-            period_name = "GÜNLÜK" if current_period == 'daily' else "HAFTALIK" if current_period == 'weekly' else "AYLIK"
-            report_lines.append(f"\n📅 **{period_name} GÖREVLER:**")
+        # 4. Kişiselleştirilmiş Tavsiyeler (Dinamik)
+        report_lines.append("### 💡 Personalized Productivity Tips")
         
-        status_icon = "✅" if task.is_completed else "⏳"
-        priority_icon = "🔴" if task.priority == 'High' else "🟡" if task.priority == 'Medium' else "🟢"
-        report_lines.append(
-            f"{idx}. {status_icon} {priority_icon} **[{task.start_time} - {task.end_time}]** {task.title} "
-            f"*(Öncelik: {task.priority})*"
-        )
-    report_lines.append("")
+        if high_count > 3:
+            report_lines.append("- ⚠️ You have too many **High Priority** tasks in your daily list. To avoid losing focus, try focusing on at most 2-3 main tasks a day (80/20 rule).")
+        else:
+            report_lines.append("- 👍 The number of high-priority tasks is well-balanced. Try to complete these high-priority tasks during the first hours of the day when your energy is highest.")
+            
+        if len(tasks) - completed_count > 6:
+            report_lines.append("- 🕒 Your workload seems slightly high. Divide big tasks into smaller sub-tasks to keep up your motivation.")
+        
+        report_lines.append("\n🚀 *Remember: Planning is half of success. AI optimized your plan, now it is time for action!*")
 
-    # 4. Kişiselleştirilmiş Tavsiyeler (Dinamik)
-    report_lines.append("### 💡 Kişiselleştirilmiş Verimlilik Tavsiyeleri")
-    
-    if high_count > 3:
-        report_lines.append("- ⚠️ Günlük listenizde çok fazla **Yüksek Öncelikli** görev var. Odak noktanızın dağılmaması için bir günde en fazla 2-3 ana göreve odaklanmayı deneyin (80/20 kuralı).")
     else:
-        report_lines.append("- 👍 Yüksek öncelikli görev sayınız oldukça dengeli. Günün en enerjik olduğunuz ilk saatlerinde bu yüksek öncelikli görevleri tamamlamaya çalışın.")
+        # Türkçe Rapor (Varsayılan)
+        report_lines.append("### 🧠 Yapay Zeka Planlama ve Analiz Raporu\n")
         
-    if len(tasks) - completed_count > 6:
-        report_lines.append("- 🕒 Yapılacak iş yükünüz biraz fazla görünüyor. Motivasyonunuzu kaybetmemek için büyük işleri küçük alt görevlere bölerek ilerleyin.")
-    
-    # Genel motivasyon cümlesi
-    report_lines.append("\n🚀 *Unutmayın: Plan yapmak başarmanın yarısıdır. Yapay zeka planınızı optimize etti, şimdi harekete geçme zamanı!*")
+        # 1. Genel Durum Analizi
+        total_tasks = len(tasks)
+        high_count = sum(1 for t in tasks if t.priority == 'High')
+        medium_count = sum(1 for t in tasks if t.priority == 'Medium')
+        low_count = sum(1 for t in tasks if t.priority == 'Low')
+        completed_count = sum(1 for t in tasks if t.is_completed)
+        
+        report_lines.append(f"🔍 **Genel Plan Değerlendirmesi:**")
+        report_lines.append(f"Listenizde toplam **{total_tasks}** adet tanımlı görev bulunmaktadır. Bunların **{completed_count}** tanesi tamamlanmış durumdadır.")
+        report_lines.append(f"- 🔥 **Yüksek Öncelikli:** {high_count} görev")
+        report_lines.append(f"- ⚡ **Orta Öncelikli:** {medium_count} görev")
+        report_lines.append(f"- 🍃 **Düşük Öncelikli:** {low_count} görev\n")
+
+        # 2. Çakışma Analizi ve Uyarılar
+        report_lines.append("### ⚠️ Zaman Çakışması Analizi")
+        if conflicts:
+            report_lines.append("Zamanlama planınızda bazı görevlerin çakıştığı tespit edildi. Aynı anda iki yerde olamazsınız! Lütfen aşağıdaki çakışmaları gözden geçirin:")
+            for t1, t2 in conflicts:
+                report_lines.append(
+                    f"- **Çakışma Tespit Edildi:** [{t1.start_time} - {t1.end_time}] saatlerindeki *\"{t1.title}\"* ile "
+                    f"[{t2.start_time} - {t2.end_time}] saatlerindeki *\"{t2.title}\"* ({t1.period} periyodunda) çakışıyor."
+                )
+            report_lines.append("\n💡 *Öneri: Çakışan görevlerden daha az öncelikli olanın saat aralığını güncelleyebilir veya başka bir güne erteleyebilirsiniz.*\n")
+        else:
+            report_lines.append("🎉 Harika! Zaman çizelgenizde herhangi bir zaman çakışması tespit edilmedi. Görevleriniz gün içine dengeli dağıtılmış görünüyor.\n")
+
+        # 3. AI Akıllı Sıralama Önerisi
+        report_lines.append("### 📈 Yapay Zeka Tarafından Optimize Edilmiş Sıralama")
+        report_lines.append("Üretkenliğinizi en üst düzeye çıkarmak için görevleriniz öncelik sırasına, enerjinizin en yüksek olacağı saatlere ve periyotlara göre yeniden dizilmiştir:")
+        
+        current_period = None
+        for idx, task in enumerate(sorted_tasks, 1):
+            if task.period != current_period:
+                current_period = task.period
+                period_name = "GÜNLÜK" if current_period == 'daily' else "HAFTALIK" if current_period == 'weekly' else "AYLIK"
+                report_lines.append(f"\n📅 **{period_name} GÖREVLER:**")
+            
+            status_icon = "✅" if task.is_completed else "⏳"
+            priority_icon = "🔴" if task.priority == 'High' else "🟡" if task.priority == 'Medium' else "🟢"
+            report_lines.append(
+                f"{idx}. {status_icon} {priority_icon} **[{task.start_time} - {task.end_time}]** {task.title} "
+                f"*(Öncelik: {task.priority})*"
+            )
+        report_lines.append("")
+
+        # 4. Kişiselleştirilmiş Tavsiyeler (Dinamik)
+        report_lines.append("### 💡 Kişiselleştirilmiş Verimlilik Tavsiyeleri")
+        
+        if high_count > 3:
+            report_lines.append("- ⚠️ Günlük listenizde çok fazla **Yüksek Öncelikli** görev var. Odak noktanızın dağılmaması için bir günde en fazla 2-3 ana göreve odaklanmayı deneyin (80/20 kuralı).")
+        else:
+            report_lines.append("- 👍 Yüksek öncelikli görev sayınız oldukça dengeli. Günün en enerjik olduğunuz ilk saatlerinde bu yüksek öncelikli görevleri tamamlamaya çalışın.")
+            
+        if len(tasks) - completed_count > 6:
+            report_lines.append("- 🕒 Yapılacak iş yükünüz biraz fazla görünüyor. Motivasyonunuzu kaybetmemek için büyük işleri küçük alt görevlere bölerek ilerleyin.")
+        
+        report_lines.append("\n🚀 *Unutmayın: Plan yapmak başarmanın yarısıdır. Yapay zeka planınızı optimize etti, şimdi harekete geçme zamanı!*")
 
     return "\n".join(report_lines)
