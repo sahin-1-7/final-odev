@@ -49,17 +49,30 @@
                 <div class="d-flex align-items-center gap-3">
                     <!-- Dil Seçimi -->
                     <div class="dropdown">
-                        <button class="btn btn-sm btn-dark border border-secondary rounded-pill dropdown-toggle d-flex align-items-center gap-1.5 px-3 py-1.5 text-white" type="button" data-bs-toggle="dropdown">
+                        {% set active_lang = session.get('lang', 'tr') %}
+                        <button class="btn btn-sm {% if active_lang == 'tr' %}lang-tr-bg{% elif active_lang == 'en' %}lang-en-bg{% elif active_lang == 'fr' %}lang-fr-bg{% elif active_lang == 'es' %}lang-es-bg{% elif active_lang == 'hi' %}lang-hi-bg{% elif active_lang == 'ar' %}lang-ar-bg{% else %}btn-dark{% endif %} border border-secondary rounded-pill dropdown-toggle d-flex align-items-center gap-1.5 px-3 py-1.5 text-white" type="button" data-bs-toggle="dropdown">
                             <i class="bi bi-translate text-secondary"></i>
-                            {% if session.get('lang') == 'en' %}
-                                English
+                            {% if active_lang == 'en' %}
+                                🇺🇸 English
+                            {% elif active_lang == 'fr' %}
+                                🇫🇷 Français
+                            {% elif active_lang == 'es' %}
+                                🇪🇸 Español
+                            {% elif active_lang == 'hi' %}
+                                🇮🇳 हिन्दी
+                            {% elif active_lang == 'ar' %}
+                                🇸🇦 العربية
                             {% else %}
-                                Türkçe
+                                🇹🇷 Türkçe
                             {% endif %}
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-secondary">
-                            <li><a class="dropdown-menu-item d-flex align-items-center gap-2 px-3 py-2 text-white" href="?lang=tr"><span class="fs-6">🇹🇷</span> Türkçe</a></li>
-                            <li><a class="dropdown-menu-item d-flex align-items-center gap-2 px-3 py-2 text-white" href="?lang=en"><span class="fs-6">🇺🇸</span> English</a></li>
+                            <li><a class="dropdown-menu-item d-flex align-items-center gap-2 px-3 py-2 text-white lang-tr-bg" href="?lang=tr"><span class="fs-6">🇹🇷</span> Türkçe</a></li>
+                            <li><a class="dropdown-menu-item d-flex align-items-center gap-2 px-3 py-2 text-white lang-en-bg" href="?lang=en"><span class="fs-6">🇺🇸</span> English</a></li>
+                            <li><a class="dropdown-menu-item d-flex align-items-center gap-2 px-3 py-2 text-white lang-fr-bg" href="?lang=fr"><span class="fs-6">🇫🇷</span> Français</a></li>
+                            <li><a class="dropdown-menu-item d-flex align-items-center gap-2 px-3 py-2 text-white lang-es-bg" href="?lang=es"><span class="fs-6">🇪🇸</span> Español</a></li>
+                            <li><a class="dropdown-menu-item d-flex align-items-center gap-2 px-3 py-2 text-white lang-hi-bg" href="?lang=hi"><span class="fs-6">🇮🇳</span> हिन्दी</a></li>
+                            <li><a class="dropdown-menu-item d-flex align-items-center gap-2 px-3 py-2 text-white lang-ar-bg" href="?lang=ar"><span class="fs-6">🇸🇦</span> العربية</a></li>
                         </ul>
                     </div>
 

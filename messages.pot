@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-05-27 11:20+0300\n"
+"POT-Creation-Date: 2026-05-27 18:54+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,56 +17,57 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: app/blueprints/tasks/routes.py:59 app/blueprints/tasks/routes.py:111
+#: app/blueprints/tasks/routes.py:61 app/blueprints/tasks/routes.py:113
 msgid "Görev başlığı boş bırakılamaz."
 msgstr ""
 
-#: app/blueprints/tasks/routes.py:63 app/blueprints/tasks/routes.py:115
+#: app/blueprints/tasks/routes.py:65 app/blueprints/tasks/routes.py:116
 msgid "Başlangıç ve bitiş saatleri boş bırakılamaz."
 msgstr ""
 
-#: app/blueprints/tasks/routes.py:70 app/blueprints/tasks/routes.py:122
+#: app/blueprints/tasks/routes.py:72 app/blueprints/tasks/routes.py:122
+#: app/templates/tasks/dashboard.html:382
 msgid "Görev başlangıç saati bitiş saatinden büyük veya eşit olamaz."
 msgstr ""
 
-#: app/blueprints/tasks/routes.py:79 app/blueprints/tasks/routes.py:136
+#: app/blueprints/tasks/routes.py:81 app/blueprints/tasks/routes.py:135
 #, python-format
 msgid ""
 "Zaman çakışması tespit edildi: Bu saatler arasında zaten başka bir "
 "göreviniz (\"%(title)s\") bulunmaktadır."
 msgstr ""
 
-#: app/blueprints/tasks/routes.py:95
+#: app/blueprints/tasks/routes.py:97
 msgid "Görev başarıyla eklendi!"
 msgstr ""
 
-#: app/blueprints/tasks/routes.py:147
+#: app/blueprints/tasks/routes.py:145
 msgid "Görev başarıyla güncellendi!"
 msgstr ""
 
-#: app/blueprints/tasks/routes.py:157
+#: app/blueprints/tasks/routes.py:155
 msgid "tamamlandı"
 msgstr ""
 
-#: app/blueprints/tasks/routes.py:157
+#: app/blueprints/tasks/routes.py:155
 msgid "tamamlanmadı"
 msgstr ""
 
-#: app/blueprints/tasks/routes.py:158
+#: app/blueprints/tasks/routes.py:156
 #, python-format
 msgid "\"%(title)s\" görevi %(status)s olarak işaretlendi."
 msgstr ""
 
-#: app/blueprints/tasks/routes.py:168
+#: app/blueprints/tasks/routes.py:166
 #, python-format
 msgid "\"%(title)s\" görevi başarıyla silindi."
 msgstr ""
 
-#: app/blueprints/tasks/routes.py:176
+#: app/blueprints/tasks/routes.py:174
 msgid "Yapay zeka analizi için en az bir görev tanımlamış olmalısınız."
 msgstr ""
 
-#: app/blueprints/tasks/routes.py:187
+#: app/blueprints/tasks/routes.py:185
 msgid "Görevleriniz yapay zeka tarafından başarıyla analiz edildi!"
 msgstr ""
 
@@ -82,24 +83,24 @@ msgstr ""
 msgid "AI Sohbet Asistanı"
 msgstr ""
 
-#: app/templates/base.html:74 app/templates/main/profile.html:3
+#: app/templates/base.html:87 app/templates/main/profile.html:3
 msgid "Profilim"
 msgstr ""
 
-#: app/templates/base.html:76
+#: app/templates/base.html:89
 msgid "Çıkış Yap"
 msgstr ""
 
 #: app/templates/auth/login.html:3 app/templates/auth/login.html:34
-#: app/templates/base.html:81 app/templates/main/index.html:21
+#: app/templates/base.html:94 app/templates/main/index.html:21
 msgid "Giriş Yap"
 msgstr ""
 
-#: app/templates/auth/register.html:3 app/templates/base.html:82
+#: app/templates/auth/register.html:3 app/templates/base.html:95
 msgid "Kayıt Ol"
 msgstr ""
 
-#: app/templates/base.html:118
+#: app/templates/base.html:131
 msgid "Vibe Coding ile tasarlandı."
 msgstr ""
 
@@ -275,7 +276,7 @@ msgstr ""
 msgid "Desteklenen formatlar: PNG, JPG, JPEG, GIF (Maks. 2MB)"
 msgstr ""
 
-#: app/templates/main/profile.html:54 app/templates/tasks/dashboard.html:221
+#: app/templates/main/profile.html:54 app/templates/tasks/dashboard.html:282
 msgid "Değişiklikleri Kaydet"
 msgstr ""
 
@@ -285,6 +286,11 @@ msgstr ""
 
 #: app/templates/tasks/ai_chat.html:253
 msgid "Planlama Asistanı"
+msgstr ""
+
+#: app/templates/tasks/ai_chat.html:257
+#, python-format
+msgid "Gemini %(model_name)s Aktif"
 msgstr ""
 
 #: app/templates/tasks/ai_chat.html:260
@@ -311,8 +317,79 @@ msgid ""
 "yapay zekayı denemek için .env dosyanıza GEMINI_API_KEY ekleyebilirsiniz."
 msgstr ""
 
+#: app/templates/tasks/ai_chat.html:295
+#, python-format
+msgid ""
+"Merhaba <strong>%(username)s</strong>! Ben senin akıllı planlama "
+"asistanın <strong>Glide AI</strong>."
+msgstr ""
+
+#: app/templates/tasks/ai_chat.html:297
+msgid ""
+"Bugün yapılacak tüm görevlerini inceledim. Günlük işlerini planlamak, "
+"saat çakışmalarını çözmek veya o anki motivasyonuna göre zaman çizelgeni "
+"düzenlemek için buradayım."
+msgstr ""
+
+#: app/templates/tasks/ai_chat.html:299
+msgid ""
+"Bugün kendini nasıl hissediyorsun? Günün en verimli saatlerini hangi "
+"işlere ayırmak istersin? Yaz bana, planını karşılıklı konuşarak "
+"güncelleyelim!"
+msgstr ""
+
+#: app/templates/tasks/ai_chat.html:339
+msgid "Günlük planımdaki saat çakışmalarını kontrol eder misin?"
+msgstr ""
+
+#: app/templates/tasks/ai_chat.html:340
+msgid "Çakışmaları Bul"
+msgstr ""
+
+#: app/templates/tasks/ai_chat.html:342
+msgid "Görevlerimi öncelik sırasına göre dizer misin?"
+msgstr ""
+
+#: app/templates/tasks/ai_chat.html:343
+msgid "Görevleri Sırala"
+msgstr ""
+
+#: app/templates/tasks/ai_chat.html:345
+msgid "Bugünkü planımı optimize etmek ve verimlilik tavsiyesi almak istiyorum."
+msgstr ""
+
+#: app/templates/tasks/ai_chat.html:346
+msgid "Verimlilik Önerileri"
+msgstr ""
+
+#: app/templates/tasks/ai_chat.html:348
+msgid ""
+"Bugün kendimi biraz yorgun hissediyorum, planımı esnek periyotlara çeker "
+"misin?"
+msgstr ""
+
+#: app/templates/tasks/ai_chat.html:349
+msgid "Esnek Plan İstiyorum"
+msgstr ""
+
 #: app/templates/tasks/ai_chat.html:356
 msgid "Asistan ile konuşun, planınızı isteyin..."
+msgstr ""
+
+#: app/templates/tasks/ai_chat.html:398
+msgid "Sohbet geçmişinizi tamamen temizlemek istediğinize emin misiniz?"
+msgstr ""
+
+#: app/templates/tasks/ai_chat.html:417 app/templates/tasks/ai_chat.html:474
+msgid "Hata:"
+msgstr ""
+
+#: app/templates/tasks/ai_chat.html:422
+msgid "İşlem gerçekleştirilemedi."
+msgstr ""
+
+#: app/templates/tasks/ai_chat.html:455
+msgid "Bir hata oluştu"
 msgstr ""
 
 #: app/templates/tasks/ai_planner.html:131
@@ -356,17 +433,17 @@ msgid ""
 msgstr ""
 
 #: app/templates/tasks/ai_planner.html:203
-#: app/templates/tasks/dashboard.html:145
+#: app/templates/tasks/dashboard.html:184
 msgid "Yüksek Öncelik"
 msgstr ""
 
 #: app/templates/tasks/ai_planner.html:205
-#: app/templates/tasks/dashboard.html:147
+#: app/templates/tasks/dashboard.html:186
 msgid "Orta Öncelik"
 msgstr ""
 
 #: app/templates/tasks/ai_planner.html:207
-#: app/templates/tasks/dashboard.html:149
+#: app/templates/tasks/dashboard.html:188
 msgid "Düşük Öncelik"
 msgstr ""
 
@@ -390,128 +467,150 @@ msgstr ""
 msgid "Günlük, haftalık ve aylık planlarınızı akıllıca yönetin."
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:17
+#: app/templates/tasks/dashboard.html:20
 msgid "Görevlerde arayın..."
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:21
+#: app/templates/tasks/dashboard.html:24
 msgid "Ara"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:34
+#: app/templates/tasks/dashboard.html:37
 msgid "Yeni Görev Ekle"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:39 app/templates/tasks/dashboard.html:183
+#: app/templates/tasks/dashboard.html:42 app/templates/tasks/dashboard.html:244
 msgid "Görev Başlığı"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:40
+#: app/templates/tasks/dashboard.html:43
 msgid "örn. Python Projesi Hazırla"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:43 app/templates/tasks/dashboard.html:187
+#: app/templates/tasks/dashboard.html:46 app/templates/tasks/dashboard.html:248
 msgid "Açıklama"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:44
+#: app/templates/tasks/dashboard.html:47
 msgid "Görev detaylarını buraya yazın..."
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:48 app/templates/tasks/dashboard.html:192
+#: app/templates/tasks/dashboard.html:51 app/templates/tasks/dashboard.html:253
 msgid "Periyot"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:50 app/templates/tasks/dashboard.html:99
-#: app/templates/tasks/dashboard.html:194
+#: app/templates/tasks/dashboard.html:53 app/templates/tasks/dashboard.html:102
+#: app/templates/tasks/dashboard.html:255
 msgid "Günlük"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:51 app/templates/tasks/dashboard.html:100
-#: app/templates/tasks/dashboard.html:195
+#: app/templates/tasks/dashboard.html:54 app/templates/tasks/dashboard.html:103
+#: app/templates/tasks/dashboard.html:256
 msgid "Haftalık"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:52 app/templates/tasks/dashboard.html:101
-#: app/templates/tasks/dashboard.html:196
+#: app/templates/tasks/dashboard.html:55 app/templates/tasks/dashboard.html:104
+#: app/templates/tasks/dashboard.html:257
 msgid "Aylık"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:56 app/templates/tasks/dashboard.html:200
+#: app/templates/tasks/dashboard.html:59 app/templates/tasks/dashboard.html:261
 msgid "Öncelik"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:58 app/templates/tasks/dashboard.html:108
-#: app/templates/tasks/dashboard.html:202
+#: app/templates/tasks/dashboard.html:61 app/templates/tasks/dashboard.html:111
+#: app/templates/tasks/dashboard.html:263
 msgid "Yüksek"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:59 app/templates/tasks/dashboard.html:109
-#: app/templates/tasks/dashboard.html:203
+#: app/templates/tasks/dashboard.html:62 app/templates/tasks/dashboard.html:112
+#: app/templates/tasks/dashboard.html:264
 msgid "Orta"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:60 app/templates/tasks/dashboard.html:110
-#: app/templates/tasks/dashboard.html:204
+#: app/templates/tasks/dashboard.html:63 app/templates/tasks/dashboard.html:113
+#: app/templates/tasks/dashboard.html:265
 msgid "Düşük"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:66 app/templates/tasks/dashboard.html:210
+#: app/templates/tasks/dashboard.html:69 app/templates/tasks/dashboard.html:271
 msgid "Başlangıç"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:70 app/templates/tasks/dashboard.html:214
+#: app/templates/tasks/dashboard.html:73 app/templates/tasks/dashboard.html:275
 msgid "Bitiş"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:74
+#: app/templates/tasks/dashboard.html:77
 msgid "Planla ve Ekle"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:83
+#: app/templates/tasks/dashboard.html:86
 msgid "Yapay Zeka Analizi"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:84
+#: app/templates/tasks/dashboard.html:87
 msgid ""
 "Görev çakışmalarını tespit edin, önceliklerinize göre optimize edilmiş "
 "programınızı yapay zeka ile hemen oluşturun."
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:86
+#: app/templates/tasks/dashboard.html:89
 msgid "Planı Optimize Et"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:98 app/templates/tasks/dashboard.html:107
+#: app/templates/tasks/dashboard.html:101
+#: app/templates/tasks/dashboard.html:110
 msgid "Tümü"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:105
+#: app/templates/tasks/dashboard.html:108
 msgid "Öncelik:"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:157
-#: app/templates/tasks/dashboard.html:176
+#: app/templates/tasks/dashboard.html:123
+#, python-format
+msgid "\"%(query)s\" için arama sonuçları"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:196
+#: app/templates/tasks/dashboard.html:236
 msgid "Görevi Düzenle"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:163
+#: app/templates/tasks/dashboard.html:202
 msgid "Bu görevi silmek istediğinize emin misiniz?"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:163
+#: app/templates/tasks/dashboard.html:202
 msgid "Görevi Sil"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:220
-msgid "İptal"
+#: app/templates/tasks/dashboard.html:215
+msgid "Aradığınız kriterlere uygun görev bulunamadı"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:233
+#: app/templates/tasks/dashboard.html:216
+msgid "Lütfen arama teriminizi değiştirip tekrar deneyin."
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:218
 msgid "Burada henüz bir görev yok"
 msgstr ""
 
-#: app/templates/tasks/dashboard.html:234
+#: app/templates/tasks/dashboard.html:219
 msgid "Yeni planlar yapmak için sol paneldeki görev formunu kullanabilirsiniz."
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:281
+msgid "İptal"
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:408
+msgid "Bir hata oluştu."
+msgstr ""
+
+#: app/templates/tasks/dashboard.html:416
+msgid "Sunucuyla bağlantı kurulurken hata oluştu."
 msgstr ""
 

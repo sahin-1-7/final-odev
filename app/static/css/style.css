@@ -238,3 +238,89 @@ body {
     animation: pulseGlow 3s infinite;
     border-color: rgba(99, 102, 241, 0.3) !important;
 }
+
+/* Türkçe Dil Seçeneği Arka Planı - Crescent and Star Türkiye Bayrağı */
+.lang-tr-bg {
+    background-image: linear-gradient(rgba(13, 14, 20, 0.45), rgba(13, 14, 20, 0.45)), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="%23da291c"/><circle cx="400" cy="400" r="200" fill="%23ffffff"/><circle cx="450" cy="400" r="160" fill="%23da291c"/><polygon points="575,400 519,418 540,360 562,418 506,380" fill="%23ffffff"/></svg>') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    color: #fff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+    border-color: #da291c !important;
+}
+.lang-tr-bg:hover {
+    background-image: linear-gradient(rgba(13, 14, 20, 0.25), rgba(13, 14, 20, 0.25)), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="%23da291c"/><circle cx="400" cy="400" r="200" fill="%23ffffff"/><circle cx="450" cy="400" r="160" fill="%23da291c"/><polygon points="575,400 519,418 540,360 562,418 506,380" fill="%23ffffff"/></svg>') !important;
+    box-shadow: 0 0 15px rgba(218, 41, 44, 0.4) !important;
+}
+
+/* İngilizce Dil Seçeneği Arka Planı - US Bayrağı Teması */
+.lang-en-bg {
+    background-image: linear-gradient(rgba(13, 14, 20, 0.45), rgba(13, 14, 20, 0.45)), linear-gradient(135deg, #0a3161 45%, #b22234 45%) !important;
+    background-size: cover !important;
+    background-position: center !important;
+    color: #fff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+    border-color: #0a3161 !important;
+}
+.lang-en-bg:hover {
+    background-image: linear-gradient(rgba(13, 14, 20, 0.25), rgba(13, 14, 20, 0.25)), linear-gradient(135deg, #0a3161 45%, #b22234 45%) !important;
+    box-shadow: 0 0 15px rgba(10, 49, 97, 0.4) !important;
+}
+
+/* Fransızca Dil Seçeneği Arka Planı - Fransa Bayrağı */
+.lang-fr-bg {
+    background-image: linear-gradient(rgba(13, 14, 20, 0.45), rgba(13, 14, 20, 0.45)), linear-gradient(to right, #002654 33.3%, #ffffff 33.3%, #ffffff 66.6%, #ed2939 66.6%) !important;
+    background-size: cover !important;
+    background-position: center !important;
+    color: #fff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+    border-color: #002654 !important;
+}
+.lang-fr-bg:hover {
+    background-image: linear-gradient(rgba(13, 14, 20, 0.25), rgba(13, 14, 20, 0.25)), linear-gradient(to right, #002654 33.3%, #ffffff 33.3%, #ffffff 66.6%, #ed2939 66.6%) !important;
+    box-shadow: 0 0 15px rgba(0, 38, 84, 0.4) !important;
+}
+
+/* İspanyolca Dil Seçeneği Arka Planı - İspanya Bayrağı */
+.lang-es-bg {
+    background-image: linear-gradient(rgba(13, 14, 20, 0.45), rgba(13, 14, 20, 0.45)), linear-gradient(to bottom, #c60b1e 25%, #ffc400 25%, #ffc400 75%, #c60b1e 75%) !important;
+    background-size: cover !important;
+    background-position: center !important;
+    color: #fff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+    border-color: #c60b1e !important;
+}
+.lang-es-bg:hover {
+    background-image: linear-gradient(rgba(13, 14, 20, 0.25), rgba(13, 14, 20, 0.25)), linear-gradient(to bottom, #c60b1e 25%, #ffc400 25%, #ffc400 75%, #c60b1e 75%) !important;
+    box-shadow: 0 0 15px rgba(198, 11, 30, 0.4) !important;
+}
+
+/* Hintçe Dil Seçeneği Arka Planı - Hindistan Bayrağı */
+.lang-hi-bg {
+    background-image: linear-gradient(rgba(13, 14, 20, 0.45), rgba(13, 14, 20, 0.45)), linear-gradient(to bottom, #ff9933 33.3%, #ffffff 33.3%, #ffffff 66.6%, #138808 66.6%) !important;
+    background-size: cover !important;
+    background-position: center !important;
+    color: #fff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+    border-color: #ff9933 !important;
+}
+.lang-hi-bg:hover {
+    background-image: linear-gradient(rgba(13, 14, 20, 0.25), rgba(13, 14, 20, 0.25)), linear-gradient(to bottom, #ff9933 33.3%, #ffffff 33.3%, #ffffff 66.6%, #138808 66.6%) !important;
+    box-shadow: 0 0 15px rgba(255, 153, 51, 0.4) !important;
+}
+
+/* Arapça Dil Seçeneği Arka Planı - Suudi Arabistan Bayrağı Teması */
+.lang-ar-bg {
+    background-image: linear-gradient(rgba(13, 14, 20, 0.45), rgba(13, 14, 20, 0.45)), linear-gradient(135deg, #006c35 80%, #ffffff 80%, #ffffff 83%, #006c35 83%) !important;
+    background-size: cover !important;
+    background-position: center !important;
+    color: #fff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+    border-color: #006c35 !important;
+}
+.lang-ar-bg:hover {
+    background-image: linear-gradient(rgba(13, 14, 20, 0.25), rgba(13, 14, 20, 0.25)), linear-gradient(135deg, #006c35 80%, #ffffff 80%, #ffffff 83%, #006c35 83%) !important;
+    box-shadow: 0 0 15px rgba(0, 108, 53, 0.4) !important;
+}
+
+

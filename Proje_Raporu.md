@@ -147,14 +147,17 @@ erDiagram
 * Görevler eklenirken başlangıç ve bitiş saatleri girilir (Örn: 09:00 - 10:30).
 * **Dinamik Görev Güncelleme (Edit):** Görev satırlarına modern "Düzenle" butonları yerleştirilmiş, koyu tema cam estetiğine uyumlu Bootstrap 5 modal pencereleri entegre edilmiştir. Kullanıcılar görevlerini sayfadan ayrılmadan güncelleyebilirler.
 
-### 🔍 SQL LIKE Tabanlı Hızlı Arama & Filtreleme (Bonus +3 Puan)
-* Arama çubuğuna yazılan anahtar kelimeler, SQL'deki `LIKE` operatörü kullanılarak veritabanında görev başlığı veya açıklamasında gerçek zamanlı aranır.
-* Görevler; Günlük, Haftalık, Aylık veya Öncelik Derecesine göre tek tıkla filtrelenebilir.
+### 🔍 Güvenli SQL LIKE Arama & Asenkron Tam Metin Arama Entegrasyonu (Bonus +3 Puan)
+* **Kullanıcı Deneyimi & Performans:** Arama çubuğuna yazılan anahtar kelimeler, asenkron AJAX çağrıları ve 300ms debounce (gecikmeli tetikleme) yapısı kullanılarak sayfayı yenilemeden veritabanından dinamik olarak listelenir. Arama sonuçları tarayıcı geçmişiyle (`window.history`) senkronize çalışır.
+* **SQL Wildcard Temizliği ve XSS Koruması:** Arama sorgusu öncesinde SQL enjeksiyon ve mantıksal hataları önlemek adına `%`, `_` ve `\` gibi özel wildcard karakterleri backend seviyesinde temizlenir ve kaçış karakterine dönüştürülür.
+* **IDOR/BOLA Engellemesi (Siber Güvenlik Sıkılaştırması):** Arama sorguları, veritabanı düzeyinde kesinlikle `current_user.id` filtresi ile sarmallanarak yetkisiz kullanıcıların veya dış sızma test araçlarının diğer kullanıcıların görev verilerine erişmesi (Broken Object Level Authorization) %100 oranında engellenmiştir.
+* **Filtreleme:** Görevler; Günlük, Haftalık, Aylık veya Öncelik Derecesine göre tek tıkla filtrelenebilir.
 
-### 🌐 Çoklu Dil Desteği (Flask-Babel Entegrasyonu) (Bonus +5 Puan)
-* Sistem Türkçe ve İngilizce dil seçeneklerini tam olarak destekler.
-* Dil seçimi üst menüdeki butonlar aracılığıyla dinamik olarak değiştirilebilir ve kullanıcının seçimi oturumda (`session`) saklanır.
-* Jinja şablonlarındaki tüm metinler, modal butonları, validasyon hata mesajları ve durum flash uyarıları `gettext` (`_()`) fonksiyonları ile yerelleştirilmiş ve derlenmiştir.
+### 🌐 Çoklu Dil Desteği (Flask-Babel Entegrasyonu) & AI Yerelleştirmesi (Bonus +5 Puan)
+* **Altı Dil Desteği:** Sistem Türkçe (TR), İngilizce (EN), Fransızca (FR), İspanyolca (ES), Hintçe (HI) ve Arapça (AR) olmak üzere tam 6 farklı dilde kesintisiz çalışmaktadır. Dil seçici dropdown menüsünün arka planları ilgili dillerin bayrak renkleriyle dinamik olarak güncellenmiştir.
+* **Yapay Zeka Sohbet Asistanı Yerelleştirmesi:** Yapay Zeka Sohbet Asistanı (AI Chat) sayfasındaki tüm hardcoded Türkçe metinler, karşılama mesajları, öneri çipleri (`data-prompt` payload'ları dahil), form yer tutucuları ve Javascript onay/uyarı pencereleri Flask-Babel `_()` fonksiyonlarıyla sarmalanarak 6 dilde dinamik hale getirilmiştir.
+* **Backend Dil Senkronizasyonu:** Rotalardaki dil seçimi `session` yerine doğrudan `str(get_locale())` ile dinamik çözümlenerek backend ve şablon dillerinin diller arası geçişte her zaman 100% senkronize çalışması sağlanmıştır.
+* **Şablon Yerelleştirmeleri:** Jinja şablonlarındaki tüm metinler, modal butonları, validasyon hata mesajları ve durum flash uyarıları `gettext` (`_()`) fonksiyonları ile yerelleştirilmiş ve derlenmiştir.
 
 ### 🧠 Yapay Zeka (AI) Planlama ve Zaman Çakışması Analizi (Ana Tema)
 * **Zaman Çakışması Algoritması:** Sistem, kullanıcının eklediği görevlerin saatlerini analiz eder. Eğer aynı periyotta yer alan iki görevin saat aralıkları çakışıyorsa (Örn: 10:00-11:00 arası spor ve 10:30-12:00 arası toplantı), sistem bunu anında bulur ve kullanıcıyı uyarır. Gelişmiş çakışma doğrulama matematiksel modeli `max(S1, S2) < min(E1, E2)` backend seviyesinde çalıştırılmaktadır.
@@ -173,6 +176,10 @@ erDiagram
 ### 🧹 Temiz Kod (Clean Code) ve Merkezi Mimari
 * **Merkezi Modül Entegrasyonu:** Kod tekrarını sıfırlamak ve sürdürülebilirliği artırmak amacıyla `app/utils.py` dosyası projeye entegre edilmiştir. 
 * **Dosya Görev Bölüşümü:** Şifre sıfırlama token doğrulamaları, e-posta oluşturma mantığı (`send_reset_email`) ve zaman dönüştürme araçları (`parse_time_to_minutes`) tek bir merkezde toplanarak Blueprint rotalarındaki karmaşıklık giderilmiştir.
+
+### 🧪 Kalite Güvencesi ve Otomatik Entegrasyon Testleri
+* **Bağımsız Uygulama Bağlamı (Context Isolation):** Çeviri dosyalarının ve şablonların diller arası geçişlerde sorunsuz derlendiğini ve yüklendiğini teyit eden isolated-context entegrasyon test suite'i (`scratch/test_ai_chat_rendering.py`) geliştirilmiştir.
+* **100% Doğrulama Oranı:** Yapılan testler sonucunda Türkçe, İngilizce, Fransızca, İspanyolca, Hintçe ve Arapça olmak üzere tüm dillerde karşılama mesajları, öneri çipleri ve Javascript uyarılarının kusursuz render edildiği ve sunucuyla entegre çalıştığı kanıtlanmıştır.
 
 ---
 

@@ -14,15 +14,17 @@ def dashboard():
     # Filtreler ve Arama Parametreleri
     period_filter = request.args.get('period', 'all')
     priority_filter = request.args.get('priority', 'all')
-    search_query = request.args.get('q', '').strip()
+    search_query = request.args.get('q', '').strip()[:100]
     
     query = Task.query.filter_by(user_id=current_user.id)
     
-    # SQL LIKE Tabanlı Full-Text Arama (Bonus Özellik +3 Puan)
+    # SQL LIKE/ILIKE Tabanlı Güvenli Full-Text Arama (Bonus Özellik +3 Puan)
     if search_query:
+        # SQL wildcard karakterlerini güvenli hale getir
+        escaped_query = search_query.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
         query = query.filter(
-            (Task.title.like(f"%{search_query}%")) | 
-            (Task.description.like(f"%{search_query}%"))
+            (Task.title.ilike(f"%{escaped_query}%", escape='\\')) | 
+            (Task.description.ilike(f"%{escaped_query}%", escape='\\'))
         )
     
     if period_filter != 'all':
@@ -108,19 +110,16 @@ def edit_task(task_id):
     end_time = request.form.get('end_time', '10:00').strip()
     
     if not title:
-        flash(_('Görev başlığı boş bırakılamaz.'), 'danger')
-        return redirect(url_for('tasks.dashboard'))
+        return jsonify({'error': _('Görev başlığı boş bırakılamaz.')}), 400
         
     if not start_time or not end_time:
-        flash(_('Başlangıç ve bitiş saatleri boş bırakılamaz.'), 'danger')
-        return redirect(url_for('tasks.dashboard'))
+        return jsonify({'error': _('Başlangıç ve bitiş saatleri boş bırakılamaz.')}), 400
         
     start_min = parse_time_to_minutes(start_time)
     end_min = parse_time_to_minutes(end_time)
     
     if start_min >= end_min:
-        flash(_('Görev başlangıç saati bitiş saatinden büyük veya eşit olamaz.'), 'danger')
-        return redirect(url_for('tasks.dashboard'))
+        return jsonify({'error': _('Görev başlangıç saati bitiş saatinden büyük veya eşit olamaz.')}), 400
         
     # Zaman Çakışması Kontrolü (Kendisi hariç)
     existing_tasks = Task.query.filter(
@@ -133,8 +132,7 @@ def edit_task(task_id):
         t_start = parse_time_to_minutes(t.start_time)
         t_end = parse_time_to_minutes(t.end_time)
         if max(start_min, t_start) < min(end_min, t_end):
-            flash(_('Zaman çakışması tespit edildi: Bu saatler arasında zaten başka bir göreviniz ("%(title)s") bulunmaktadır.', title=t.title), 'danger')
-            return redirect(url_for('tasks.dashboard'))
+            return jsonify({'error': _('Zaman çakışması tespit edildi: Bu saatler arasında zaten başka bir göreviniz ("%(title)s") bulunmaktadır.', title=t.title)}), 400
             
     task.title = title
     task.description = description
@@ -145,7 +143,7 @@ def edit_task(task_id):
     
     db.session.commit()
     flash(_('Görev başarıyla güncellendi!'), 'success')
-    return redirect(url_for('tasks.dashboard'))
+    return jsonify({'success': True})
 
 @tasks_bp.route('/complete/<int:task_id>', methods=['POST'])
 @login_required
@@ -213,12 +211,22 @@ def ai_planner():
 @tasks_bp.route('/ai/chat', methods=['GET', 'POST'])
 @login_required
 def ai_chat():
+    from flask_babel import get_locale
+    lang = str(get_locale())
     api_key_configured = bool(current_app.config.get('GEMINI_API_KEY') or os.environ.get('GEMINI_API_KEY'))
     
     if request.method == 'POST':
         user_message = request.form.get('message', '').strip()
         if not user_message:
-            return jsonify({'error': 'Mesaj boş olamaz.'}), 400
+            error_msgs = {
+                'en': 'Message cannot be empty.',
+                'es': 'El mensaje no puede estar vacío.',
+                'fr': 'Le message ne peut pas être vide.',
+                'ar': 'لا يمكن أن تكون الرسالة فارغة.',
+                'hi': 'संदेश खाली नहीं हो सकता।',
+                'tr': 'Mesaj boş olamaz.'
+            }
+            return jsonify({'error': error_msgs.get(lang, error_msgs['tr'])}), 400
             
         # 1. Kullanıcının mesajını veritabanına kaydet
         user_chat = ChatHistory(message=user_message, sender='user', user_id=current_user.id)
@@ -241,77 +249,169 @@ def ai_chat():
         # 3. Gemini API veya Simülasyon Yanıtı Üret
         ai_response = None
         if api_key_configured:
-            ai_response = get_gemini_chat_response(user_message, history_list[:-1], tasks_data)
+            ai_response = get_gemini_chat_response(user_message, history_list[:-1], tasks_data, lang=lang)
             
         if not ai_response:
             # SİMÜLASYON MODU (Fallback / Offline Demo Modu)
-            # Kullanıcının mesajına göre hem sohbet eden hem de görev sıralaması yapan zengin bir motor
             msg_lower = user_message.lower()
             
-            # Görev sıralama tespiti
-            wants_sorting = any(k in msg_lower for k in ["sırala", "sirala", "görev", "gorev", "plan", "hedef", "list", "düzenle", "duzenle", "kronolojik"])
-            wants_greeting = any(k in msg_lower for k in ["selam", "merhaba", "hey", "naber", "meraba", "merhabalar"])
-            wants_help = any(k in msg_lower for k in ["yardım", "yardim", "neler yapabilirsin", "özellikler"])
+            # Localized Keyword matching
+            sorting_keywords = {
+                'tr': ["sırala", "sirala", "görev", "gorev", "plan", "hedef", "list", "düzenle", "duzenle", "kronolojik"],
+                'en': ["sort", "order", "task", "plan", "schedule", "list", "edit", "chronological"],
+                'es': ["ordenar", "organizar", "tarea", "plan", "lista", "editar", "cronologico"],
+                'fr': ["trier", "ordonner", "tache", "plan", "liste", "modifier", "chronologique"],
+                'ar': ["ترتيب", "تنظيم", "مهمة", "خطة", "قائمة", "تعديل", "زمني"],
+                'hi': ["क्रम", "व्यवस्थित", "कार्य", "योजना", "सूची", "संपादित", "कालानुक्रमिक"]
+            }
             
+            greeting_keywords = {
+                'tr': ["selam", "merhaba", "hey", "naber", "meraba", "merhabalar"],
+                'en': ["hi", "hello", "hey", "howdy", "greetings"],
+                'es': ["hola", "saludos", "hey"],
+                'fr': ["salut", "bonjour", "hey", "coucou"],
+                'ar': ["مرحبا", "أهلا", "سلام", "مرحباً"],
+                'hi': ["नमस्ते", "हैलो", "प्रणाम", "राम राम"]
+            }
+            
+            help_keywords = {
+                'tr': ["yardım", "yardim", "neler yapabilirsin", "özellikler"],
+                'en': ["help", "features", "what can you do"],
+                'es': ["ayuda", "caracteristicas", "que puedes hacer"],
+                'fr': ["aide", "fonctionnalites", "que peux tu faire"],
+                'ar': ["مساعدة", "ميزات", "ماذا يمكنك أن تفعل"],
+                'hi': ["मदद", "विशेषताएं", "आप क्या कर सकते हैं"]
+            }
+            
+            def match_keywords(msg, kw_dict, current_lang):
+                keywords = kw_dict.get(current_lang, kw_dict['tr'])
+                return any(k in msg for k in keywords) or any(k in msg for k in kw_dict['tr'])
+            
+            wants_sorting = match_keywords(msg_lower, sorting_keywords, lang)
+            wants_greeting = match_keywords(msg_lower, greeting_keywords, lang)
+            wants_help = match_keywords(msg_lower, help_keywords, lang)
+            
+            # Localized Responses
             if wants_sorting:
                 if tasks:
                     # Görevleri önceliklerine göre sıralayalım (High -> Medium -> Low)
                     priority_weights = {'High': 3, 'Medium': 2, 'Low': 1}
-                    sorted_t = sorted(tasks, key=lambda t: -priority_weights.get(t.priority, 2))
+                    sorted_t = sorted(tasks, key=lambda t_item: -priority_weights.get(t_item.priority, 2))
                     tasks_sorted_str = ""
-                    for i, t in enumerate(sorted_t, 1):
-                        status = "✅" if t.is_completed else "⏳"
-                        p_badge = "🔴 Yüksek" if t.priority == 'High' else "🟡 Orta" if t.priority == 'Medium' else "🟢 Düşük"
-                        tasks_sorted_str += f"{i}. {status} **{t.title}** | Saat: {t.start_time} - {t.end_time} | Öncelik: {p_badge}\n"
-                    
-                    greeting_prefix = ""
-                    if wants_greeting:
-                        greeting_prefix = f"Merhaba **{current_user.username}**! Harika bir gün dilerim. Sohbet etmek ne güzel!\n\n"
-                    else:
-                        greeting_prefix = "Tabii ki! Günlük zaman yönetimini optimize etmek için buradayım.\n\n"
+                    for i, t_item in enumerate(sorted_t, 1):
+                        status = "✅" if t_item.is_completed else "⏳"
                         
-                    ai_response = (
-                        f"{greeting_prefix}"
-                        f"Güncel listendeki **{len(tasks)}** adet görevi senin için inceledim ve maksimum üretkenlik için öncelik sırasına göre dizdim:\n\n"
-                        f"{tasks_sorted_str}\n"
-                        "💡 **Glide Yapay Zeka Önerisi:** En yüksek öncelikli görevlerinden başlamak odaklanmanı artıracaktır. "
-                        "Bu sıralama senin için nasıl? Değiştirmemi istediğin herhangi bir saat veya öncelik var mı?"
-                    )
+                        # Priority badge çevirisi
+                        p_badge = t_item.priority
+                        if lang == 'es':
+                            p_badge = '🔴 Prioridad Alta' if t_item.priority == 'High' else '🟡 Prioridad Media' if t_item.priority == 'Medium' else '🟢 Prioridad Baja'
+                        elif lang == 'fr':
+                            p_badge = '🔴 Priorité Haute' if t_item.priority == 'High' else '🟡 Priorité Moyenne' if t_item.priority == 'Medium' else '🟢 Priorité Basse'
+                        elif lang == 'ar':
+                            p_badge = '🔴 أولوية عالية' if t_item.priority == 'High' else '🟡 أولوية متوسطة' if t_item.priority == 'Medium' else '🟢 أولوية منخفضة'
+                        elif lang == 'hi':
+                            p_badge = '🔴 उच्च प्राथमिकता' if t_item.priority == 'High' else '🟡 मध्यम प्राथमिकता' if t_item.priority == 'Medium' else '🟢 निम्न प्राथमिकता'
+                        elif lang == 'en':
+                            p_badge = '🔴 High Priority' if t_item.priority == 'High' else '🟡 Medium Priority' if t_item.priority == 'Medium' else '🟢 Low Priority'
+                        else:
+                            p_badge = '🔴 Yüksek' if t_item.priority == 'High' else '🟡 Orta' if t_item.priority == 'Medium' else '🟢 Düşük'
+                        
+                        tasks_sorted_str += f"{i}. {status} **{t_item.title}** | Saat: {t_item.start_time} - {t_item.end_time} | Öncelik: {p_badge}\n"
+                    
+                    if lang == 'en':
+                        ai_response = (
+                            f"Hello **{current_user.username}**! I reviewed **{len(tasks)}** tasks in your list and sorted them by priority for maximum productivity:\n\n"
+                            f"{tasks_sorted_str}\n"
+                            "💡 **AI Tip:** Starting with high-priority tasks will boost your focus. "
+                            "How does this schedule look to you? Are there any updates you'd like to make?"
+                        )
+                    elif lang == 'es':
+                        ai_response = (
+                            f"¡Hola **{current_user.username}**! He revisado las **{len(tasks)}** tareas de tu lista y las he ordenado por prioridad para obtener la máxima productividad:\n\n"
+                            f"{tasks_sorted_str}\n"
+                            "💡 **Consejo de IA:** Comenzar con tus tareas de alta prioridad aumentará tu enfoque. "
+                            "¿Cómo se ve este horario? ¿Hay algún cambio que quieras hacer?"
+                        )
+                    elif lang == 'fr':
+                        ai_response = (
+                            f"Bonjour **{current_user.username}** ! J'ai passé en revue les **{len(tasks)}** tâches de votre liste et les ai triées par priorité pour une productivité maximale :\n\n"
+                            f"{tasks_sorted_str}\n"
+                            "💡 **Conseil de l'IA :** Commencer par vos tâches prioritaires augmentera votre concentration. "
+                            "Que pensez-vous de ce planning ? Souhaitez-vous y apporter des modifications ?"
+                        )
+                    elif lang == 'ar':
+                        ai_response = (
+                            f"مرحباً **{current_user.username}**! لقد راجعت **{len(tasks)}** من المهام في قائمتك ورتبتها حسب الأولوية لتحقيق أقصى قدر من الإنتاجية:\n\n"
+                            f"{tasks_sorted_str}\n"
+                            "💡 **نصيحة الذكاء الاصطناعي:** البدء بالمهام ذات الأولوية العالية سيزيد من تركيزك. "
+                            "كيف تبدو هذه الخطة بالنسبة لك؟ هل هناك أي تعديلات ترغب في إجرائها؟"
+                        )
+                    elif lang == 'hi':
+                        ai_response = (
+                            f"नमस्ते **{current_user.username}**! मैंने आपकी सूची में **{len(tasks)}** कार्यों की समीक्षा की है और अधिकतम उत्पादकता के लिए उन्हें प्राथमिकता के अनुसार व्यवस्थित किया है:\n\n"
+                            f"{tasks_sorted_str}\n"
+                            "💡 **एआई सलाह:** उच्च प्राथमिकता वाले कार्यों से शुरुआत करने से आपका ध्यान बढ़ेगा। "
+                            "यह कार्यक्रम आपको कैसा लगा? क्या आप इसमें कोई बदलाव करना चाहते हैं?"
+                        )
+                    else:
+                        ai_response = (
+                            f"Merhaba **{current_user.username}**! Güncel listendeki **{len(tasks)}** adet görevi senin için inceledim ve maksimum üretkenlik için öncelik sırasına göre dizdim:\n\n"
+                            f"{tasks_sorted_str}\n"
+                            "💡 **Glide Yapay Zeka Önerisi:** En yüksek öncelikli görevlerinden başlamak odaklanmanı artıracaktır. "
+                            "Bu sıralama senin için nasıl? Değiştirmemi istediğin herhangi bir saat veya öncelik var mı?"
+                        )
                 else:
-                    greeting_prefix = ""
-                    if wants_greeting:
-                        greeting_prefix = f"Merhaba **{current_user.username}**! "
-                    ai_response = (
-                        f"{greeting_prefix}Sohbet isteğini ve görev sıralama talebini aldım. "
-                        "Fakat şu an planında kayıtlı bir görev bulunmuyor. "
-                        "Öncelikle panelden birkaç görev eklersen, onları senin için hemen analiz edebilir ve en verimli şekilde sıralayabilirim!"
-                    )
+                    if lang == 'en':
+                        ai_response = f"Hello **{current_user.username}**! I'd love to sort your tasks, but your schedule is currently empty. Please add some tasks from the dashboard first!"
+                    elif lang == 'es':
+                        ai_response = f"¡Hola **{current_user.username}**! Me encantaría ordenar tus tareas, pero tu agenda está vacía. ¡Agrega algunas tareas desde el tablero primero!"
+                    elif lang == 'fr':
+                        ai_response = f"Bonjour **{current_user.username}** ! J'aimerais trier vos tâches, mais votre planning est vide. Veuillez d'abord ajouter des tâches depuis le tableau !"
+                    elif lang == 'ar':
+                        ai_response = f"مرحباً **{current_user.username}**! أود ترتيب مهامك، لكن جدولك فارغ حالياً. يرجى إضافة بعض المهام من لوحة التحكم أولاً!"
+                    elif lang == 'hi':
+                        ai_response = f"नमस्ते **{current_user.username}**! मैं आपके कार्यों को क्रमबद्ध करना पसंद करूँगा, लेकिन आपका कार्यक्रम वर्तमान में खाली है। कृपया पहले डैशबोर्ड से कुछ कार्य जोड़ें!"
+                    else:
+                        ai_response = f"Merhaba **{current_user.username}**! Görev sıralama talebini aldım. Fakat şu an planında kayıtlı bir görev bulunmuyor. Öncelikle panelden birkaç görev eklersen, onları senin için hemen analiz edebilir ve en verimli şekilde sıralayabilirim!"
             elif wants_greeting:
-                ai_response = (
-                    f"Merhaba **{current_user.username}**! Harika bir sohbet olsun. Ben senin akıllı asistanın Glide.\n\n"
-                    "Bugün nasılsın? Kalan işlerini ve zaman planını birlikte organize edebiliriz.\n\n"
-                    "💡 *Bana 'görevlerimi sırala' diyerek planını listelememi isteyebilir veya zaman çakışmalarını incelememi talep edebilirsin.*"
-                )
-            elif any(k in msg_lower for k in ["nasılsın", "nasilsin", "keyifler"]):
-                ai_response = (
-                    "Harikayım, teşekkür ederim! Glide asistanı olarak sana zaman yönetiminde yardım etmekten büyük keyif alıyorum.\n\n"
-                    "Bugünkü görev listeni sıralamamı veya planındaki çakışmaları analiz etmemi ister misin?"
-                )
+                if lang == 'en':
+                    ai_response = f"Hello **{current_user.username}**! I am your smart planning assistant Glide AI. How are you today? We can organize your tasks and schedule together."
+                elif lang == 'es':
+                    ai_response = f"¡Hola **{current_user.username}**! Soy tu asistente de planificación inteligente Glide AI. ¿Cómo estás hoy? Podemos organizar tus tareas y tu horario juntos."
+                elif lang == 'fr':
+                    ai_response = f"Bonjour **{current_user.username}** ! Je suis votre assistant de planification intelligent Glide AI. Comment allez-vous aujourd'hui ? Nous pouvons organiser vos tâches et votre planning ensemble."
+                elif lang == 'ar':
+                    ai_response = f"مرحباً **{current_user.username}**! أنا مساعد التخطيط الذكي الخاص بك Glide AI. كيف حالك اليوم؟ يمكننا تنظيم مهامك وجدولك معاً."
+                elif lang == 'hi':
+                    ai_response = f"नमस्ते **{current_user.username}**! मैं आपका स्मार्ट प्लानिंग असिस्टेंट Glide AI हूँ। आज आप कैसे हैं? हम मिलकर आपके कार्यों और कार्यक्रम को व्यवस्थित कर सकते हैं।"
+                else:
+                    ai_response = f"Merhaba **{current_user.username}**! Harika bir sohbet olsun. Ben senin akıllı asistanın Glide. Bugün nasılsın? Kalan işlerini ve zaman planını birlikte organize edebiliriz."
             elif wants_help:
-                ai_response = (
-                    f"Ben senin akıllı zaman yönetimi asistanın **Glide AI**. Sana şu konularda yardımcı olabilirim:\n\n"
-                    "1. 🕒 **Zaman Çakışması Analizi:** Aynı saate denk gelen çakışan görevlerini bulurum.\n"
-                    "2. ⭐ **Akıllı Öncelik Sıralaması:** Görevlerini önem derecesine göre dizerim.\n"
-                    "3. 💬 **Sohbet & Motivasyon:** Günlük planın hakkında konuşup verimli tavsiyeler veririm.\n\n"
-                    "Denemek için bana bir mesaj yazabilirsin!"
-                )
+                if lang == 'en':
+                    ai_response = "I am **Glide AI**, your smart time management assistant. I can help you with:\n1. 🕒 **Time Overlap Analysis**\n2. ⭐ **Smart Priority Sequence**\n3. 💬 **Chat & Efficiency Tips**\n\nHow can I help you today?"
+                elif lang == 'es':
+                    ai_response = "Soy **Glide AI**, tu asistente inteligente de gestión del tiempo. Puedo ayudarte con:\n1. 🕒 **Análisis de conflicto de horarios**\n2. ⭐ **Orden inteligente de prioridades**\n3. 💬 **Chat y consejos de eficiencia**\n\n¿Cómo puedo ayudarte hoy?"
+                elif lang == 'fr':
+                    ai_response = "Je suis **Glide AI**, votre assistant intelligent de gestion du temps. Je peux vous aider à :\n1. 🕒 **Analyse des conflits horaires**\n2. ⭐ **Tri intelligent des priorités**\n3. 💬 **Discussion & Conseils d'efficacité**\n\nComment puis-je vous aider aujourd'hui ?"
+                elif lang == 'ar':
+                    ai_response = "أنا **Glide AI**، مساعدك الذكي لإدارة الوقت. يمكنني مساعدتك في:\n1. 🕒 **تحليل تداخل الوقت**\n2. ⭐ **ترتيب الأولويات الذكي**\n3. 💬 **المحادثة ونصائح الكفاءة**\n\nكيف يمكنني مساعدتك اليوم؟"
+                elif lang == 'hi':
+                    ai_response = "मैं **Glide AI** हूँ, आपका स्मार्ट समय प्रबंधन सहायक। मैं आपकी मदद कर सकता हूँ:\n1. 🕒 **समय ओवरलैप विश्लेषण**\n2. ⭐ **स्मार्ट प्राथमिकता क्रम**\n3. 💬 **चैट और दक्षता युक्तियाँ**\n\nआज मैं आपकी कैसे मदद कर सकता हूँ?"
+                else:
+                    ai_response = "Ben senin akıllı zaman yönetimi asistanın **Glide AI**. Sana şu konularda yardımcı olabilirim:\n1. 🕒 **Zaman Çakışması Analizi**\n2. ⭐ **Akıllı Öncelik Sıralaması**\n3. 💬 **Sohbet & Verimlilik Tavsiyeleri**\n\nDenemek için bana bir mesaj yazabilirsin!"
             else:
-                ai_response = (
-                    f"Sohbet mesajını aldım! Glide asistanı olarak seninle konuşmak harika.\n\n"
-                    "Bu çevrimdışı simülasyon modunda sana en iyi şekilde yardımcı olmak için çalışıyorum. "
-                    "Görevlerini öncelik sırasına göre sıralamamı veya saat çakışmalarını kontrol etmemi ister misin? "
-                    "Ya da gerçek zamanlı sınırsız zeka için `.env` dosyana API anahtarını ekleyebilirsin!"
-                )
+                if lang == 'en':
+                    ai_response = "I received your message! As your smart assistant, I am here to help you sort tasks, analyze schedule conflicts, or offer productivity advice in this offline mode."
+                elif lang == 'es':
+                    ai_response = "¡He recibido tu mensaje! Como tu asistente inteligente, estoy aquí para ayudarte a ordenar tareas, analizar conflictos de horarios o brindarte consejos en este modo fuera de línea."
+                elif lang == 'fr':
+                    ai_response = "J'ai bien reçu votre message ! En tant qu'assistant intelligent, je suis là pour vous aider à trier les tâches, analyser les conflits horaires ou vous donner des conseils en mode hors ligne."
+                elif lang == 'ar':
+                    ai_response = "لقد استلمت رسالتك! كمساعدك الذكي، أنا هنا لمساعدتك في ترتيب المهام، أو تحليل تداخل الجدول، أو تقديم نصائح الإنتاجية في هذا الوضع غير المتصل بالإنترنت."
+                elif lang == 'hi':
+                    ai_response = "मुझे आपका संदेश मिल गया है! आपके स्मार्ट सहायक के रूप में, मैं इस ऑफ़लाइन मोड में कार्यों को क्रमबद्ध करने, समय संघर्षों का विश्लेषण करने या उत्पादकता सलाह देने के लिए यहाँ हूँ।"
+                else:
+                    ai_response = "Sohbet mesajını aldım! Glide asistanı olarak seninle konuşmak harika. Bu çevrimdışı simülasyon modunda görevlerini öncelik sırasına göre sıralamamı veya saat çakışmalarını kontrol etmemi ister misin?"
             
         # 4. Yapay zekanın yanıtını kaydet
         ai_chat = ChatHistory(message=ai_response, sender='ai', user_id=current_user.id)

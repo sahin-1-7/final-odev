@@ -254,7 +254,7 @@
                             <span class="fs-8 text-secondary d-flex align-items-center gap-1">
                                 {% if api_configured %}
                                     <span class="bg-success rounded-circle animate-pulse" style="width: 6px; height: 6px; box-shadow: 0 0 6px #10b981;"></span>
-                                    Gemini {{ model_name }} Aktif
+                                    {{ _('Gemini %(model_name)s Aktif', model_name=model_name) }}
                                 {% else %}
                                     <span class="bg-info rounded-circle animate-pulse" style="width: 6px; height: 6px; background-color: #06b6d4 !important; box-shadow: 0 0 6px #06b6d4;"></span>
                                     {{ _('AI Simülasyon Modu Aktif') }}
@@ -292,11 +292,11 @@
                             </div>
                             <div class="msg-bubble msg-ai glowing-border mb-0">
                                 <div class="msg-content">
-                                    Merhaba <strong>{{ current_user.username }}</strong>! Ben senin akıllı planlama asistanın <strong>Glide AI</strong>. 
+                                    {{ _('Merhaba <strong>%(username)s</strong>! Ben senin akıllı planlama asistanın <strong>Glide AI</strong>.', username=current_user.username) | safe }}
                                     <br><br>
-                                    Bugün yapılacak tüm görevlerini inceledim. Günlük işlerini planlamak, saat çakışmalarını çözmek veya o anki motivasyonuna göre zaman çizelgeni düzenlemek için buradayım. 
+                                    {{ _('Bugün yapılacak tüm görevlerini inceledim. Günlük işlerini planlamak, saat çakışmalarını çözmek veya o anki motivasyonuna göre zaman çizelgeni düzenlemek için buradayım.') }}
                                     <br><br>
-                                    <em>Bugün kendini nasıl hissediyorsun? Günün en verimli saatlerini hangi işlere ayırmak istersin? Yaz bana, planını karşılıklı konuşarak güncelleyelim!</em>
+                                    <em>{{ _('Bugün kendini nasıl hissediyorsun? Günün en verimli saatlerini hangi işlere ayırmak istersin? Yaz bana, planını karşılıklı konuşarak güncelleyelim!') }}</em>
                                 </div>
                             </div>
                         </div>
@@ -336,17 +336,17 @@
 
                     <!-- Öneri Çipleri (Suggestion Chips) -->
                     <div class="suggestion-chips d-flex flex-wrap gap-2 mb-3 mt-2">
-                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1.5 fs-8 text-secondary border border-secondary border-opacity-25" data-prompt="Günlük planımdaki saat çakışmalarını kontrol eder misin?">
-                            🕒 Çakışmaları Bul
+                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1.5 fs-8 text-secondary border border-secondary border-opacity-25" data-prompt="{{ _('Günlük planımdaki saat çakışmalarını kontrol eder misin?') }}">
+                            🕒 {{ _('Çakışmaları Bul') }}
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1.5 fs-8 text-secondary border border-secondary border-opacity-25" data-prompt="Görevlerimi öncelik sırasına göre dizer misin?">
-                            ⭐ Görevleri Sırala
+                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1.5 fs-8 text-secondary border border-secondary border-opacity-25" data-prompt="{{ _('Görevlerimi öncelik sırasına göre dizer misin?') }}">
+                            ⭐ {{ _('Görevleri Sırala') }}
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1.5 fs-8 text-secondary border border-secondary border-opacity-25" data-prompt="Bugünkü planımı optimize etmek ve verimlilik tavsiyesi almak istiyorum.">
-                            💡 Verimlilik Önerileri
+                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1.5 fs-8 text-secondary border border-secondary border-opacity-25" data-prompt="{{ _('Bugünkü planımı optimize etmek ve verimlilik tavsiyesi almak istiyorum.') }}">
+                            💡 {{ _('Verimlilik Önerileri') }}
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1.5 fs-8 text-secondary border border-secondary border-opacity-25" data-prompt="Bugün kendimi biraz yorgun hissediyorum, planımı esnek periyotlara çeker misin?">
-                            ⚡ Esnek Plan İstiyorum
+                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1.5 fs-8 text-secondary border border-secondary border-opacity-25" data-prompt="{{ _('Bugün kendimi biraz yorgun hissediyorum, planımı esnek periyotlara çeker misin?') }}">
+                            ⚡ {{ _('Esnek Plan İstiyorum') }}
                         </button>
                     </div>
 
@@ -395,7 +395,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Geçmişi Temizleme Eylemi
     if (clearBtn) {
         clearBtn.addEventListener('click', function() {
-            if (!confirm('Sohbet geçmişinizi tamamen temizlemek istediğinize emin misiniz?')) return;
+            if (!confirm('{{ _("Sohbet geçmişinizi tamamen temizlemek istediğinize emin misiniz?") }}')) return;
             
             clearBtn.disabled = true;
             fetch("{{ url_for('tasks.ai_chat_clear') }}", {
@@ -414,12 +414,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     clearBtn.disabled = false;
                     scrollToBottom();
                 } else {
-                    alert('Hata: ' + data.message);
+                    alert('{{ _("Hata:") }} ' + data.message);
                     clearBtn.disabled = false;
                 }
             })
             .catch(error => {
-                alert('İşlem gerçekleştirilemedi.');
+                alert('{{ _("İşlem gerçekleştirilemedi.") }}');
                 clearBtn.disabled = false;
             });
         });
@@ -452,7 +452,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => {
                 if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.error || 'Bir hata oluştu') });
+                    return response.json().then(err => { throw new Error(err.error || '{{ _("Bir hata oluştu") }}') });
                 }
                 return response.json();
             })
@@ -471,7 +471,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 chatInput.focus();
                 
                 // Hata mesajını ekrana ekle
-                appendMessage("❌ Hata: " + error.message, 'ai');
+                appendMessage("❌ {{ _('Hata:') }} " + error.message, 'ai');
                 scrollToBottom();
             });
         });

@@ -11,10 +11,13 @@
             <p class="text-secondary m-0">{{ _('Günlük, haftalık ve aylık planlarınızı akıllıca yönetin.') }}</p>
         </div>
         <div class="col-md-6">
-            <form method="GET" action="{{ url_for('tasks.dashboard') }}" class="d-flex gap-2">
+            <form method="GET" action="{{ url_for('tasks.dashboard') }}" class="d-flex gap-2" id="search-form">
                 <div class="input-group">
-                    <span class="input-group-text bg-dark border-secondary border-end-0 text-secondary"><i class="bi bi-search"></i></span>
-                    <input type="text" class="form-control border-secondary border-start-0 ps-0" name="q" value="{{ search_query }}" placeholder="{{ _('Görevlerde arayın...') }}">
+                    <span class="input-group-text bg-dark border-secondary border-end-0 text-secondary">
+                        <i class="bi bi-search" id="search-icon"></i>
+                        <div class="spinner-border spinner-border-sm text-primary d-none" id="search-spinner" role="status"></div>
+                    </span>
+                    <input type="text" class="form-control border-secondary border-start-0 ps-0" id="search-input" name="q" value="{{ search_query }}" placeholder="{{ _('Görevlerde arayın...') }}" autocomplete="off">
                 </div>
                 {% if period_filter != 'all' %}<input type="hidden" name="period" value="{{ period_filter }}">{% endif %}
                 {% if priority_filter != 'all' %}<input type="hidden" name="priority" value="{{ priority_filter }}">{% endif %}
@@ -90,7 +93,7 @@
         </div>
 
         <!-- Sağ Bölüm: Görev Listesi ve Filtreleme -->
-        <div class="col-lg-8">
+        <div class="col-lg-8" id="task-list-container">
             <div class="card border-0 h-100">
                 <div class="card-header border-0 py-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
                     <!-- Filtre Seçenekleri -->
@@ -113,6 +116,16 @@
                 </div>
 
                 <div class="card-body p-4">
+                    {% if search_query %}
+                        <div class="alert alert-info border-0 bg-info-subtle text-info d-flex align-items-center justify-content-between p-3 rounded-3 mb-4">
+                            <div>
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                <span>{{ _('"%(query)s" için arama sonuçları', query=search_query) }}</span>
+                            </div>
+                            <a href="{{ url_for('tasks.dashboard', period=period_filter, priority=priority_filter) }}" class="btn-close text-info shadow-none" aria-label="Kapat"></a>
+                        </div>
+                    {% endif %}
+                    
                     {% if tasks %}
                         <div class="task-list">
                             {% for task in tasks %}
@@ -132,7 +145,33 @@
                                         <div>
                                             <div class="d-flex align-items-center gap-2">
                                                 <h6 class="task-title fw-bold m-0 text-white">{{ task.title }}</h6>
-                                                <span class="badge bg-secondary-subtle text-secondary fs-8 rounded px-2">{{ task.period | upper }}</span>
+                                                <span class="badge bg-secondary-subtle text-secondary fs-8 rounded px-2">
+                                                    {% set lang = session.get('lang', 'tr') %}
+                                                    {% if task.period == 'daily' %}
+                                                        {% if lang == 'en' %}DAILY
+                                                        {% elif lang == 'fr' %}QUOTIDIEN
+                                                        {% elif lang == 'es' %}DIARIO
+                                                        {% elif lang == 'hi' %}दैनिक
+                                                        {% elif lang == 'ar' %}يومي
+                                                        {% else %}GÜNLÜK{% endif %}
+                                                    {% elif task.period == 'weekly' %}
+                                                        {% if lang == 'en' %}WEEKLY
+                                                        {% elif lang == 'fr' %}HEBDOMADAIRE
+                                                        {% elif lang == 'es' %}SEMANAL
+                                                        {% elif lang == 'hi' %}साप्ताहिक
+                                                        {% elif lang == 'ar' %}أسبوعي
+                                                        {% else %}HAFTALIK{% endif %}
+                                                    {% elif task.period == 'monthly' %}
+                                                        {% if lang == 'en' %}MONTHLY
+                                                        {% elif lang == 'fr' %}MENSUEL
+                                                        {% elif lang == 'es' %}MENSUAL
+                                                        {% elif lang == 'hi' %}मासिक
+                                                        {% elif lang == 'ar' %}شهري
+                                                        {% else %}AYLIK{% endif %}
+                                                    {% else %}
+                                                        {{ task.period | upper }}
+                                                    {% endif %}
+                                                </span>
                                             </div>
                                             {% if task.description %}
                                                 <p class="text-secondary small m-0 mt-1">{{ task.description }}</p>
@@ -166,72 +205,19 @@
                                         </form>
                                     </div>
                                 </div>
-
-                                <!-- Düzenleme Modalı -->
-                                <div class="modal fade" id="editTaskModal{{ task.id }}" tabindex="-1" aria-labelledby="editTaskModalLabel{{ task.id }}" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content border-0 bg-dark text-white rounded-4 shadow">
-                                            <div class="modal-header border-secondary py-3">
-                                                <h5 class="modal-title fw-bold" id="editTaskModalLabel{{ task.id }}">
-                                                    <i class="bi bi-pencil-square text-info me-2"></i>{{ _('Görevi Düzenle') }}
-                                                </h5>
-                                                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <form method="POST" action="{{ url_for('tasks.edit_task', task_id=task.id) }}">
-                                                <div class="modal-body p-4 text-start">
-                                                    <div class="mb-3">
-                                                        <label for="title{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Görev Başlığı') }}</label>
-                                                        <input type="text" class="form-control border-secondary bg-dark text-white" id="title{{ task.id }}" name="title" value="{{ task.title }}" required>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label for="description{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Açıklama') }}</label>
-                                                        <textarea class="form-control border-secondary bg-dark text-white" id="description{{ task.id }}" name="description" rows="2">{{ task.description or '' }}</textarea>
-                                                    </div>
-                                                    <div class="row g-2 mb-3">
-                                                        <div class="col-6">
-                                                            <label for="period{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Periyot') }}</label>
-                                                            <select class="form-select border-secondary bg-dark text-white" id="period{{ task.id }}" name="period">
-                                                                <option value="daily" {% if task.period == 'daily' %}selected{% endif %}>{{ _('Günlük') }}</option>
-                                                                <option value="weekly" {% if task.period == 'weekly' %}selected{% endif %}>{{ _('Haftalık') }}</option>
-                                                                <option value="monthly" {% if task.period == 'monthly' %}selected{% endif %}>{{ _('Aylık') }}</option>
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-6">
-                                                            <label for="priority{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Öncelik') }}</label>
-                                                            <select class="form-select border-secondary bg-dark text-white" id="priority{{ task.id }}" name="priority">
-                                                                <option value="High" class="text-danger" {% if task.priority == 'High' %}selected{% endif %}>🔴 {{ _('Yüksek') }}</option>
-                                                                <option value="Medium" class="text-warning" {% if task.priority == 'Medium' %}selected{% endif %}>🟡 {{ _('Orta') }}</option>
-                                                                <option value="Low" class="text-success" {% if task.priority == 'Low' %}selected{% endif %}>🟢 {{ _('Düşük') }}</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <div class="row g-2">
-                                                        <div class="col-6">
-                                                            <label for="start_time{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Başlangıç') }}</label>
-                                                            <input type="time" class="form-control border-secondary bg-dark text-white" id="start_time{{ task.id }}" name="start_time" value="{{ task.start_time }}" required>
-                                                        </div>
-                                                        <div class="col-6">
-                                                            <label for="end_time{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Bitiş') }}</label>
-                                                            <input type="time" class="form-control border-secondary bg-dark text-white" id="end_time{{ task.id }}" name="end_time" value="{{ task.end_time }}" required>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer border-secondary py-3">
-                                                    <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">{{ _('İptal') }}</button>
-                                                    <button type="submit" class="btn btn-primary rounded-pill px-4">{{ _('Değişiklikleri Kaydet') }}</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
                             {% endfor %}
                         </div>
                     {% else %}
                         <!-- Boş Liste Uyarısı -->
                         <div class="text-center py-5">
                             <i class="bi bi-inbox text-secondary fs-1 d-block mb-3"></i>
-                            <h5 class="fw-semibold text-white">{{ _('Burada henüz bir görev yok') }}</h5>
-                            <p class="text-secondary small">{{ _('Yeni planlar yapmak için sol paneldeki görev formunu kullanabilirsiniz.') }}</p>
+                            {% if search_query %}
+                                <h5 class="fw-semibold text-white">{{ _('Aradığınız kriterlere uygun görev bulunamadı') }}</h5>
+                                <p class="text-secondary small">{{ _('Lütfen arama teriminizi değiştirip tekrar deneyin.') }}</p>
+                            {% else %}
+                                <h5 class="fw-semibold text-white">{{ _('Burada henüz bir görev yok') }}</h5>
+                                <p class="text-secondary small">{{ _('Yeni planlar yapmak için sol paneldeki görev formunu kullanabilirsiniz.') }}</p>
+                            {% endif %}
                         </div>
                     {% endif %}
                 </div>
@@ -239,4 +225,203 @@
         </div>
     </div>
 </div>
+
+<!-- Düzenleme Modalları (Stacking Context / Siyah Ekran Hatalarını Önlemek İçin Kök Seviyede Tanımlanmıştır) -->
+{% for task in tasks %}
+    <div class="modal fade" id="editTaskModal{{ task.id }}" tabindex="-1" aria-labelledby="editTaskModalLabel{{ task.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 bg-dark text-white rounded-4 shadow">
+                <div class="modal-header border-secondary py-3">
+                    <h5 class="modal-title fw-bold" id="editTaskModalLabel{{ task.id }}">
+                        <i class="bi bi-pencil-square text-info me-2"></i>{{ _('Görevi Düzenle') }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="{{ url_for('tasks.edit_task', task_id=task.id) }}" class="edit-task-form">
+                    <div class="modal-body p-4 text-start">
+                        <div class="alert alert-danger d-none mb-3" id="editTaskError{{ task.id }}"></div>
+                        <div class="mb-3">
+                            <label for="title{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Görev Başlığı') }}</label>
+                            <input type="text" class="form-control border-secondary bg-dark text-white" id="title{{ task.id }}" name="title" value="{{ task.title }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Açıklama') }}</label>
+                            <textarea class="form-control border-secondary bg-dark text-white" id="description{{ task.id }}" name="description" rows="2">{{ task.description or '' }}</textarea>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label for="period{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Periyot') }}</label>
+                                <select class="form-select border-secondary bg-dark text-white" id="period{{ task.id }}" name="period">
+                                    <option value="daily" {% if task.period == 'daily' %}selected{% endif %}>{{ _('Günlük') }}</option>
+                                    <option value="weekly" {% if task.period == 'weekly' %}selected{% endif %}>{{ _('Haftalık') }}</option>
+                                    <option value="monthly" {% if task.period == 'monthly' %}selected{% endif %}>{{ _('Aylık') }}</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label for="priority{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Öncelik') }}</label>
+                                <select class="form-select border-secondary bg-dark text-white" id="priority{{ task.id }}" name="priority">
+                                    <option value="High" class="text-danger" {% if task.priority == 'High' %}selected{% endif %}>🔴 {{ _('Yüksek') }}</option>
+                                    <option value="Medium" class="text-warning" {% if task.priority == 'Medium' %}selected{% endif %}>🟡 {{ _('Orta') }}</option>
+                                    <option value="Low" class="text-success" {% if task.priority == 'Low' %}selected{% endif %}>🟢 {{ _('Düşük') }}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label for="start_time{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Başlangıç') }}</label>
+                                <input type="time" class="form-control border-secondary bg-dark text-white" id="start_time{{ task.id }}" name="start_time" value="{{ task.start_time }}" required>
+                            </div>
+                            <div class="col-6">
+                                <label for="end_time{{ task.id }}" class="form-label text-secondary fs-7 fw-semibold">{{ _('Bitiş') }}</label>
+                                <input type="time" class="form-control border-secondary bg-dark text-white" id="end_time{{ task.id }}" name="end_time" value="{{ task.end_time }}" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary py-3">
+                        <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">{{ _('İptal') }}</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">{{ _('Değişiklikleri Kaydet') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const searchForm = document.getElementById('search-form');
+    const searchIcon = document.getElementById('search-icon');
+    const searchSpinner = document.getElementById('search-spinner');
+    
+    let debounceTimer;
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            // Arama ikonunu yükleniyor spinner'ı ile değiştir
+            if (searchIcon && searchSpinner) {
+                searchIcon.classList.add('d-none');
+                searchSpinner.classList.remove('d-none');
+            }
+            
+            clearTimeout(debounceTimer);
+            
+            debounceTimer = setTimeout(() => {
+                performSearch();
+            }, 300); // 300ms Debounce
+        });
+    }
+    
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            clearTimeout(debounceTimer);
+            performSearch();
+        });
+    }
+    
+    function performSearch() {
+        if (!searchInput) return;
+        const query = searchInput.value;
+        const url = new URL(window.location.href);
+        
+        if (query.trim() !== '') {
+            url.searchParams.set('q', query);
+        } else {
+            url.searchParams.delete('q');
+        }
+        
+        fetch(url.toString())
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Görev listesi alanını güncelle
+                const newContainer = doc.getElementById('task-list-container');
+                const currentContainer = document.getElementById('task-list-container');
+                if (newContainer && currentContainer) {
+                    currentContainer.innerHTML = newContainer.innerHTML;
+                }
+                
+                // Adres çubuğundaki URL'yi güncelle (kullanıcı sayfayı yenilerse kaldığı yerden devam etsin)
+                window.history.replaceState({ path: url.toString() }, '', url.toString());
+            })
+            .catch(error => console.error('Arama hatası:', error))
+            .finally(() => {
+                // Yükleniyor durumunu sonlandır ve ikonu geri getir
+                if (searchIcon && searchSpinner) {
+                    searchIcon.classList.remove('d-none');
+                    searchSpinner.classList.add('d-none');
+                }
+            });
+    }
+
+    // Görev Düzenleme Formlarını Asenkron Gönder (AJAX)
+    document.querySelectorAll('.edit-task-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formUrl = this.getAttribute('action');
+            const formData = new FormData(this);
+            const taskId = formUrl.split('/').pop();
+            
+            const errorDiv = document.getElementById('editTaskError' + taskId);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            
+            if (errorDiv) {
+                errorDiv.classList.add('d-none');
+                errorDiv.textContent = '';
+            }
+            
+            // Ön Yüz Temel Saat Validasyonu
+            const startTime = this.querySelector('[name="start_time"]').value;
+            const endTime = this.querySelector('[name="end_time"]').value;
+            if (startTime && endTime && startTime >= endTime) {
+                if (errorDiv) {
+                    errorDiv.textContent = "{{ _('Görev başlangıç saati bitiş saatinden büyük veya eşit olamaz.') }}";
+                    errorDiv.classList.remove('d-none');
+                }
+                return;
+            }
+            
+            if (submitBtn) submitBtn.disabled = true;
+            
+            fetch(formUrl, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(res => {
+                if (res.status === 200) {
+                    // Başarı: modalı kapat ve sayfayı yenile (flash mesajı görüntülensin)
+                    const modalEl = document.getElementById('editTaskModal' + taskId);
+                    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                    if (modalInstance) modalInstance.hide();
+                    window.location.reload();
+                } else {
+                    // Hata: Hata mesajını modal içinde göster (modal açık kalır)
+                    if (errorDiv) {
+                        errorDiv.textContent = res.body.error || "{{ _('Bir hata oluştu.') }}";
+                        errorDiv.classList.remove('d-none');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Düzenleme hatası:', error);
+                if (errorDiv) {
+                    errorDiv.textContent = "{{ _('Sunucuyla bağlantı kurulurken hata oluştu.') }}";
+                    errorDiv.classList.remove('d-none');
+                }
+            })
+            .finally(() => {
+                if (submitBtn) submitBtn.disabled = false;
+            });
+        });
+    });
+});
+</script>
 {% endblock %}
