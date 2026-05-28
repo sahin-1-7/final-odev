@@ -395,7 +395,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Geçmişi Temizleme Eylemi
     if (clearBtn) {
         clearBtn.addEventListener('click', function() {
-            if (!confirm('{{ _("Sohbet geçmişinizi tamamen temizlemek istediğinize emin misiniz?") }}')) return;
+            if (!confirm(`{{ _("Sohbet geçmişinizi tamamen temizlemek istediğinize emin misiniz?") }}`)) return;
             
             clearBtn.disabled = true;
             fetch("{{ url_for('tasks.ai_chat_clear') }}", {
@@ -414,12 +414,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     clearBtn.disabled = false;
                     scrollToBottom();
                 } else {
-                    alert('{{ _("Hata:") }} ' + data.message);
+                    alert(`{{ _("Hata:") }} ` + data.message);
                     clearBtn.disabled = false;
                 }
             })
             .catch(error => {
-                alert('{{ _("İşlem gerçekleştirilemedi.") }}');
+                alert(`{{ _("İşlem gerçekleştirilemedi.") }}`);
                 clearBtn.disabled = false;
             });
         });
@@ -452,7 +452,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => {
                 if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.error || '{{ _("Bir hata oluştu") }}') });
+                    return response.json().then(err => { throw new Error(err.error || `{{ _("Bir hata oluştu") }}`) });
                 }
                 return response.json();
             })
@@ -471,7 +471,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 chatInput.focus();
                 
                 // Hata mesajını ekrana ekle
-                appendMessage("❌ {{ _('Hata:') }} " + error.message, 'ai');
+                appendMessage("❌ " + `{{ _("Hata:") }}` + " " + error.message, 'ai');
                 scrollToBottom();
             });
         });

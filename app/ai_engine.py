@@ -6,323 +6,85 @@ import urllib.error
 from datetime import datetime
 from app.utils import parse_time_to_minutes
 
-def get_gemini_suggestion(tasks_data, lang='tr'):
-    """Google Gemini API'yi doğrudan çağırarak görevleri akıllıca analiz eder."""
-    api_key = os.environ.get('GEMINI_API_KEY')
+def get_gemini_bilingual_suggestion(tasks_data):
+    """
+    Kullanıcının görev verilerini alır, Gemini API'ye gönderir ve 
+    bilingual (TR & EN) analiz ile akıllı sıralama içeren JSON yanıtı döner.
+    """
+    api_key = os.environ.get('AI_API_KEY') or os.environ.get('GEMINI_API_KEY')
     if not api_key:
+        print("[AI ENGINE] API anahtarı bulunamadı. Lütfen .env dosyasında AI_API_KEY değişkenini tanımlayın.")
         return None
-        
+
     model_name = os.environ.get('GEMINI_MODEL', 'gemini-1.5-flash')
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-    
-    prompts = {
-        'en': (
-            "You are 'Glide', an intelligent time management and productivity assistant. "
-            "Below is a user's schedule and task list. Please analyze this list as an AI expert.\n\n"
-            "Task Data:\n"
-            f"{tasks_data}\n\n"
-            "Please prepare a rich and professional Markdown report containing the following analyses:\n"
-            "1. General Status Analysis: Evaluation of total workload and priority distribution.\n"
-            "2. Time Overlap Check: Clearly indicate any tasks that overlap or conflict in times (e.g. 09:00 - 10:00 overlaps with 09:30 - 11:00).\n"
-            "3. AI-Optimized Schedule: List tasks sorted by time and priority for maximum productivity.\n"
-            "4. Personalized Productivity Tips: Provide 3 practical tips customized for this person, based on scientific methodologies such as the Eisenhower Matrix, 80/20 rule, or Pomodoro.\n\n"
-            "Format your output directly in Markdown to be rendered in a Jinja2 template. Start directly with the analysis report title without any intro/meta explanation."
-        ),
-        'es': (
-            "Eres 'Glide', un asistente inteligente de gestión del tiempo y productividad. "
-            "A continuación se muestra el horario y la lista de tareas del usuario. Analiza esta lista como un experto en IA.\n\n"
-            "Datos de las tareas:\n"
-            f"{tasks_data}\n\n"
-            "Prepara un informe de Markdown rico y profesional que contenga los siguientes análisis:\n"
-            "1. Análisis de estado general: Evaluación de la carga de trabajo total y distribución de prioridades.\n"
-            "2. Control de solapamiento de tiempos: Indicar claramente cualquier tarea que se solape o tenga conflictos de horario (por ejemplo, de 09:00 a 10:00 se solapa con de 09:30 a 11:00).\n"
-            "3. Horario optimizado por IA: Lista de tareas ordenadas por tiempo y prioridad para obtener la máxima productividad.\n"
-            "4. Consejos de productividad personalizados: Proporcionar 3 consejos prácticos personalizados para esta persona, basados en metodologías científicas como la Matriz de Eisenhower, la regla 80/20 o Pomodoro.\n\n"
-            "Formatea tu salida directamente en Markdown para que se renderice en una plantilla Jinja2. Comienza directamente con el título del informe de análisis sin ninguna explicación introductoria o meta."
-        ),
-        'fr': (
-            "Vous êtes 'Glide', un assistant intelligent de gestion du temps et de productivité. "
-            "Ci-dessous se trouvent l'emploi du temps et la liste des tâches d'un utilisateur. Veuillez analyser cette liste en tant qu'expert en IA.\n\n"
-            "Données des tâches :\n"
-            f"{tasks_data}\n\n"
-            "Veuillez préparer un rapport Markdown riche et professionnel contenant les analyses suivantes :\n"
-            "1. Analyse de l'état général : Évaluation de la charge de travail totale et de la répartition des priorités.\n"
-            "2. Vérification du chevauchement des temps : Indiquer clairement toutes les tâches qui se chevauchent ou qui ont des conflits horaires (par exemple, 09:00 - 10:00 chevauche 09:30 - 11:00).\n"
-            "3. Planning optimisé par l'IA : Liste des tâches triées par heure et par priorité pour une productivité maximale.\n"
-            "4. Conseils de productivité personnalisés : Fournir 3 conseils pratiques personnalisés pour cette personne, basés sur des méthodologies scientifiques telles que la matrice d'Eisenhower, la règle des 80/20 ou Pomodoro.\n\n"
-            "Formatez votre sortie directement en Markdown pour qu'elle soit rendue dans un modèle Jinja2. Commencez directement par le titre du rapport d'analyse sans aucune explication introductive ou méta."
-        ),
-        'ar': (
-            "أنت 'Glide'، مساعد ذكي لإدارة الوقت والإنتاجية. "
-            "أدناه جدول المستخدم وقائمة مهامه. يرجى تحليل هذه القائمة كخبير في الذكاء الاصطناعي.\n\n"
-            "بيانات المهام:\n"
-            f"{tasks_data}\n\n"
-            "يرجى إعداد تقرير Markdown غني واحترافي يحتوي على التحليلات التالية:\n"
-            "1. تحليل الحالة العامة: تقييم إجمالي عبء العمل وتوزيع الأولويات.\n"
-            "2. التحقق من تداخل الوقت: حدد بوضوح أي مهام تتداخل أو تتعارض في الأوقات (على سبيل المثال، 09:00 - 10:00 تتداخل مع 09:30 - 11:00).\n"
-            "3. الجدول الزمني المحسن بالذكاء الاصطناعي: قائمة المهام مرتبة حسب الوقت والأولوية لتحقيق أقصى قدر من الإنتاجية.\n"
-            "4. نصائح إنتاجية مخصصة: قدم 3 نصائح عملية مخصصة لهذا الشخص، استنادًا إلى منهجيات علمية مثل مصفوفة إيزنهاور، أو قاعدة 80/20، أو تقنية بومودورو.\n\n"
-            "قم بتنسيق مخرجاتك مباشرة في Markdown ليتم عرضها في قالب Jinja2. ابدأ مباشرة بعنوان تقرير التحليل دون أي شرح تعريفي أو مقدمة."
-        ),
-        'hi': (
-            "आप 'Glide' हैं, एक बुद्धिमान समय प्रबंधन और उत्पादकता सहायक। "
-            "नीचे एक उपयोगकर्ता का कार्यक्रम और कार्य सूची दी गई है। कृपया एआई विशेषज्ञ के रूप में इस सूची का विश्लेषण करें।\n\n"
-            "कार्य डेटा:\n"
-            f"{tasks_data}\n\n"
-            "कृपया निम्नलिखित विश्लेषणों से युक्त एक समृद्ध और पेशेवर Markdown रिपोर्ट तैयार करें:\n"
-            "1. सामान्य स्थिति विश्लेषण: कुल कार्यभार और प्राथमिकता वितरण का मूल्यांकन।\n"
-            "2. समय ओवरलैप जांच: स्पष्ट रूप से उन कार्यों को इंगित करें जो समय में ओवरलैप या संघर्ष करते हैं (उदाहरण के लिए 09:00 - 10:00, 09:30 - 11:00 के साथ ओवरलैप होता है)।\n"
-            "3. एआई-अनुकूलित कार्यक्रम: अधिकतम उत्पादकता के लिए समय और प्राथमिकता के आधार पर क्रमबद्ध कार्यों की सूची।\n"
-            "4. व्यक्तिगत उत्पादकता युक्तियाँ: इस व्यक्ति के लिए अनुकूलित 3 व्यावहारिक सुझाव प्रदान करें, जो आइजनहावर मैट्रिक्स, 80/20 नियम, या पोमोडोरो जैसी वैज्ञानिक पद्धतियों पर आधारित हों।\n\n"
-            "Jinja2 टेम्पलेट में प्रस्तुत करने के लिए अपने आउटपुट को सीधे Markdown में प्रारूपित करें। बिना किसी परिचय/मेटा स्पष्टीकरण के सीधे विश्लेषण रिपोर्ट शीर्षक से शुरू करें।"
-        ),
-        'tr': (
-            "Sen akıllı zaman yönetimi ve üretkenlik asistanı 'Glide'sın. "
-            "Aşağıda bir kullanıcının zaman planı ve görev listesi yer almaktadır. Lütfen bu listeyi bir yapay zeka uzmanı olarak analiz et.\n\n"
-            "Görev Verileri:\n"
-            f"{tasks_data}\n\n"
-            "Lütfen şu analizleri içeren zengin ve profesyonel bir Markdown raporu hazırla:\n"
-            "1. Genel Durum Analizi: Toplam iş yükü ve öncelik dağılımı değerlendirmesi.\n"
-            "2. Zaman Çakışması Kontrolü: Aynı saat aralığına denk gelen veya birbiriyle çakışan görevleri açıkça belirt (örn: 09:00 - 10:00 arası ile 09:30 - 11:00 arası çakışır).\n"
-            "3. Yapay Zeka Tarafından Optimize Edilmiş Zaman Çizelgesi: Görevleri en yüksek üretkenlik sağlayacak şekilde saat ve öncelik derecelerine göre sıralayarak listele.\n"
-            "4. Kişiselleştirilmiş Üretkenlik Tavsiyeleri: Eisenhower Matrisi, 80/20 kuralı veya Pomodoro gibi bilimsel metodolojilere dayalı, bu kişiye özel 3 pratik tavsiye sun.\n\n"
-            "Yanıtını doğrudan Jinja2 şablonuna basılacak şekilde Markdown formatında dönüştür. Ekstra giriş/açıklama yapmadan doğrudan analiz raporu başlığıyla başla."
-        )
-    }
-    
-    prompt = prompts.get(lang, prompts['tr'])
-    
+
+    system_prompt = (
+        "You are 'Glide AI', an expert time management and productivity assistant. "
+        "Your task is to analyze the user's task list, identify any time conflicts or overlaps, "
+        "optimize the task order, and assign a priority order index (integer starting from 1) to each task.\n\n"
+        "You must respond ONLY with a raw JSON object. Do NOT wrap your response in markdown code blocks like ```json ... ```, "
+        "and do NOT include any introductory or explanatory text. The response must be a single, valid JSON object.\n\n"
+        "The JSON response MUST follow this exact schema:\n"
+        "{\n"
+        "  \"ai_evaluation_tr\": \"Türkçe detaylı analiz, zaman çakışması tespiti ve Pomodoro/Eisenhower tabanlı 3 özelleştirilmiş verimlilik tavsiyesi (Markdown formatında).\",\n"
+        "  \"ai_evaluation_en\": \"Detailed English analysis, time conflict detection, and 3 personalized productivity tips based on Pomodoro/Eisenhower methodologies (in Markdown format).\",\n"
+        "  \"tasks_priority_order\": [\n"
+        "    {\n"
+        "      \"id\": <task_id_integer>,\n"
+        "      \"priority_order\": <optimized_order_integer_starting_from_1>\n"
+        "    }\n"
+        "  ]\n"
+        "}"
+    )
+
+    prompt = f"{system_prompt}\n\nUser Task Data:\n{tasks_data}"
+
     headers = {'Content-Type': 'application/json'}
     data = {
         "contents": [{
             "parts": [{
                 "text": prompt
             }]
-        }]
-    }
-    
-    try:
-        req = urllib.request.Request(
-            url, 
-            data=json.dumps(data).encode('utf-8'), 
-            headers=headers, 
-            method='POST'
-        )
-        with urllib.request.urlopen(req, timeout=10) as response:
-            res_data = json.loads(response.read().decode('utf-8'))
-            return res_data['candidates'][0]['content']['parts'][0]['text']
-    except Exception as e:
-        error_msg = str(e)
-        if api_key in error_msg:
-            error_msg = error_msg.replace(api_key, "MASKED_KEY")
-        print(f"[GEMINI API HATA] Yapay zeka motoru çağrılamadı, kural tabanlı motora geçiliyor: {error_msg}")
-        return None
-
-def get_gemini_chat_response(user_message, chat_history_list, tasks_data, lang='tr'):
-    """
-    Kullanıcının görevlerini, konuşma geçmişini ve son mesajını alarak
-    Google Gemini API'den interaktif, planlama odaklı bir yanıt üretir.
-    """
-    api_key = os.environ.get('GEMINI_API_KEY')
-    if not api_key:
-        return None
-        
-    model_name = os.environ.get('GEMINI_MODEL', 'gemini-1.5-flash')
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-    
-    history_str = ""
-    for msg in chat_history_list:
-        role = "Kullanıcı" if msg['sender'] == 'user' else "Asistan (Sen)"
-        history_str += f"{role}: {msg['message']}\n"
-        
-    prompts = {
-        'en': (
-            "You are 'Glide', an intelligent time management and productivity assistant. "
-            "You converse in a friendly, goal-oriented manner to help the user optimize their daily schedule.\n\n"
-            f"User's Current Task List:\n{tasks_data}\n\n"
-            f"Conversation History:\n{history_str}\n"
-            f"User's Last Message: {user_message}\n\n"
-            "Please analyze their plan, answer questions, or reorder tasks based on this message in English. "
-            "If they request time, period, or priority updates, or want to shift tasks based on energy, "
-            "provide an optimized schedule and ask for their approval.\n"
-            "Always end your message with a guided, polite question to keep the conversation going. "
-            "Use Markdown formatting. Prefer a conversational, natural English language."
-        ),
-        'es': (
-            "Eres 'Glide', un asistente inteligente de gestión del tiempo y productividad. "
-            "Conversas de manera amistosa y orientada a los objetivos para ayudar al usuario a optimizar su horario diario.\n\n"
-            f"Lista de tareas actuales del usuario:\n{tasks_data}\n\n"
-            f"Historial de conversación:\n{history_str}\n"
-            f"Último mensaje del usuario: {user_message}\n\n"
-            "Analiza su plan, responde preguntas o reorganiza tareas según este mensaje en español. "
-            "Si solicitan actualizaciones de tiempo, periodo o prioridad, o desean cambiar tareas según la energía, "
-            "proporciona un horario optimizado y solicita su aprobación.\n"
-            "Termina siempre tu mensaje con una pregunta guiada y educada para mantener la conversación. "
-            "Usa el formato Markdown. Prefiere un lenguaje de conversación natural en español."
-        ),
-        'fr': (
-            "Vous êtes 'Glide', un assistant intelligent de gestion du temps et de productivité. "
-            "Vous discutez de manière amicale et axée sur les objectifs pour aider l'utilisateur à optimiser son planning quotidien.\n\n"
-            f"Liste des tâches actuelles de l'utilisateur :\n{tasks_data}\n\n"
-            f"Historique de la conversation :\n{history_str}\n"
-            f"Dernier message de l'utilisateur : {user_message}\n\n"
-            "Veuillez analyser son plan, répondre aux questions ou réordonner les tâches en fonction de ce message en français. "
-            "S'ils demandent des mises à jour de temps, de période ou de priorité, ou s'ils souhaitent déplacer des tâches en fonction de l'énergie, "
-            "fournissez un planning optimisé et demandez leur approbation.\n"
-            "Terminez toujours votre message par une question guidée et polie pour poursuivre la conversation. "
-            "Utilisez le format Markdown. Préférez un langage conversationnel naturel en français."
-        ),
-        'ar': (
-            "أنت 'Glide'، مساعد ذكي لإدارة الوقت والإنتاجية. "
-            "تتحدث بطريقة ودية وموجهة نحو الأهداف لمساعدة المستخدم على تحسين جدوله اليومي.\n\n"
-            f"قائمة المهام الحالية للمستخدم:\n{tasks_data}\n\n"
-            f"سجل المحادثة:\n{history_str}\n"
-            f"آخر رسالة للمستخدم: {user_message}\n\n"
-            "يرجى تحليل خطتهم، أو الإجابة على الأسئلة، أو إعادة ترتيب المهام بناءً على هذه الرسالة باللغة العربية. "
-            "إذا طلبوا تحديثات الوقت أو الفترة أو الأولوية، أو أرادوا تحويل المهام بناءً على الطاقة، "
-            "فقدم جدولاً زمنياً محسناً واطلب موافقتهم.\n"
-            "أنهِ رسالتك دائماً بسؤال موجه ومهذب لمواصلة المحادثة. "
-            "استخدم تنسيق Markdown. يفضل استخدام لغة حوار طبيعية باللغة العربية."
-        ),
-        'hi': (
-            "आप 'Glide' हैं, एक बुद्धिमान समय प्रबंधन और उत्पादकता सहायक। "
-            "आप उपयोगकर्ता के दैनिक कार्यक्रम को अनुकूलित करने में मदद करने के लिए एक दोस्ताना, लक्ष्य-उन्मुख तरीके से बातचीत करते हैं।\n\n"
-            f"उपयोगकर्ता की वर्तमान कार्य सूची:\n{tasks_data}\n\n"
-            f"बातचीत का इतिहास:\n{history_str}\n"
-            f"उपयोगकर्ता का अंतिम संदेश: {user_message}\n\n"
-            "कृपया इस संदेश के आधार पर हिंदी में उनकी योजना का विश्लेषण करें, प्रश्नों के उत्तर दें या कार्यों को पुनर्व्यवस्थित करें। "
-            "यदि वे समय, अवधि या प्राथमिकता अपडेट का अनुरोध करते हैं, या ऊर्जा के आधार पर कार्यों को स्थानांतरित करना चाहते हैं, "
-            "तो एक अनुकूलित कार्यक्रम प्रदान करें और उनकी स्वीकृति मांगें।\n"
-            "बातचीत को जारी रखने के लिए हमेशा अपने संदेश के अंत में एक निर्देशित, विनम्र प्रश्न पूछें। "
-            "Markdown स्वरूपण का उपयोग करें। बातचीत की स्वाभाविक हिंदी भाषा को प्राथमिकता दें।"
-        ),
-        'tr': (
-            "Sen akıllı zaman yönetimi ve verimlilik asistanı 'Glide'sın. "
-            "Kullanıcı ile dost canlısı ve çözüm odaklı konuşarak onun günlük planını optimize etmesine yardımcı oluyorsun.\n\n"
-            f"Kullanıcının Güncel Görev Listesi:\n{tasks_data}\n\n"
-            f"Konuşma Geçmişiniz:\n{history_str}\n"
-            f"Kullanıcının Son Mesajı: {user_message}\n\n"
-            "Lütfen bu son mesaja göre kullanıcının planını analiz et, sorularını yanıtla veya görevlerini sırala. "
-            "Eğer kullanıcı saat, periyot veya öncelik değişikliği gibi taleplerde bulunuyorsa veya enerjisine göre işleri kaydırmanı istiyorsa, "
-            "ona optimize edilmiş bir zaman çizelgesi sun ve bunu onaylayıp onaylamadığını sor.\n"
-            "Mesajının sonunda her zaman konuşmayı devam ettirecek yönlendirici ve nazik bir soru sor. "
-            "Markdown biçimlendirmesi kullan. Çok uzun olmayan, akıcı ve doğal bir konuşma dili tercih et."
-        )
-    }
-    
-    prompt = prompts.get(lang, prompts['tr'])
-    
-    headers = {'Content-Type': 'application/json'}
-    data = {
-        "contents": [{
-            "parts": [{
-                "text": prompt
-            }]
-        }]
-    }
-    
-    try:
-        req = urllib.request.Request(
-            url, 
-            data=json.dumps(data).encode('utf-8'), 
-            headers=headers, 
-            method='POST'
-        )
-        with urllib.request.urlopen(req, timeout=10) as response:
-            res_data = json.loads(response.read().decode('utf-8'))
-            return res_data['candidates'][0]['content']['parts'][0]['text']
-    except Exception as e:
-        error_msg = str(e)
-        if api_key in error_msg:
-            error_msg = error_msg.replace(api_key, "MASKED_KEY")
-        print(f"[GEMINI CHAT HATA] Sohbet motoru çağrılamadı: {error_msg}")
-        return None
-
-def check_overlap(task1, task2):
-    """İki görevin saat aralıklarının çakışıp çakışmadığını kontrol eder."""
-    t1_start = parse_time_to_minutes(task1.start_time)
-    t1_end = parse_time_to_minutes(task1.end_time)
-    t2_start = parse_time_to_minutes(task2.start_time)
-    t2_end = parse_time_to_minutes(task2.end_time)
-    return max(t1_start, t2_start) < min(t1_end, t2_end)
-
-def analyze_and_optimize_tasks(tasks):
-    """
-    Görev listesini analiz eder:
-    - Zaman çakışmalarını bulur.
-    - Öncelik ve süre analizi yapar.
-    - Yapay zeka tavsiyeleri ve yeniden sıralanmış akıllı bir plan üretir (Markdown formatında).
-    """
-    try:
-        from flask_babel import get_locale
-        lang = str(get_locale())
-    except Exception:
-        lang = 'tr'
-
-    if not tasks:
-        messages = {
-            'en': "You have not added any tasks to evaluate yet. Please add some tasks.",
-            'es': "Aún no ha agregado ninguna tarea para evaluar. Agregue algunas tareas.",
-            'fr': "Vous n'avez pas encore ajouté de tâches à évaluer. Veuillez ajouter des tâches.",
-            'ar': "لم تقم بإضافة أي مهام لتقييمها بعد. يرجى إضافة بعض المهام.",
-            'hi': "आपने अभी तक मूल्यांकन करने के लिए कोई कार्य नहीं जोड़ा है। कृपया कुछ कार्य जोड़ें।",
-            'tr': "Henüz değerlendirilecek bir görev eklemediniz. Lütfen birkaç görev ekleyin."
+        }],
+        "generationConfig": {
+            "responseMimeType": "application/json"
         }
-        return messages.get(lang, messages['tr'])
+    }
 
-    # 1. Görev verilerini metne dönüştür (Seçili dile göre)
-    tasks_list = []
-    for idx, t in enumerate(tasks, 1):
-        if lang == 'en':
-            status = 'Completed' if t.is_completed else 'Pending'
-            tasks_list.append(
-                f"Task {idx}: Title: '{t.title}', Description: '{t.description}', "
-                f"Period: '{t.period}', Priority: '{t.priority}', "
-                f"Time Interval: '{t.start_time} - {t.end_time}', Status: '{status}'"
-            )
-        elif lang == 'es':
-            status = 'Completado' if t.is_completed else 'Pendiente'
-            tasks_list.append(
-                f"Tarea {idx}: Título: '{t.title}', Descripción: '{t.description}', "
-                f"Periodo: '{t.period}', Prioridad: '{t.priority}', "
-                f"Intervalo de tiempo: '{t.start_time} - {t.end_time}', Estado: '{status}'"
-            )
-        elif lang == 'fr':
-            status = 'Terminé' if t.is_completed else 'En attente'
-            tasks_list.append(
-                f"Tâche {idx}: Titre: '{t.title}', Description: '{t.description}', "
-                f"Période: '{t.period}', Priorité: '{t.priority}', "
-                f"Intervalle de temps: '{t.start_time} - {t.end_time}', Statut: '{status}'"
-            )
-        elif lang == 'ar':
-            status = 'مكتمل' if t.is_completed else 'قيد الانتظار'
-            tasks_list.append(
-                f"المهمة {idx}: العنوان: '{t.title}'، الوصف: '{t.description}'، "
-                f"الفترة: '{t.period}'، الأولوية: '{t.priority}'، "
-                f"الفترة الزمنية: '{t.start_time} - {t.end_time}'، الحالة: '{status}'"
-            )
-        elif lang == 'hi':
-            status = 'पूरा हुआ' if t.is_completed else 'लंबित'
-            tasks_list.append(
-                f"कार्य {idx}: शीर्षक: '{t.title}', विवरण: '{t.description}', "
-                f"अवधि: '{t.period}', प्राथमिकता: '{t.priority}', "
-                f"समय अंतराल: '{t.start_time} - {t.end_time}', स्थिति: '{status}'"
-            )
-        else:
-            status = 'Tamamlandı' if t.is_completed else 'Bekliyor'
-            tasks_list.append(
-                f"Görev {idx}: Başlık: '{t.title}', Açıklama: '{t.description}', "
-                f"Periyot: '{t.period}', Öncelik: '{t.priority}', "
-                f"Saat Aralığı: '{t.start_time} - {t.end_time}', Durum: '{status}'"
-            )
-    tasks_data = "\n".join(tasks_list)
+    try:
+        req = urllib.request.Request(
+            url, 
+            data=json.dumps(data).encode('utf-8'), 
+            headers=headers, 
+            method='POST'
+        )
+        with urllib.request.urlopen(req, timeout=15) as response:
+            res_data = json.loads(response.read().decode('utf-8'))
+            raw_text = res_data['candidates'][0]['content']['parts'][0]['text']
+            
+            # Clean possible markdown wrapping if any (just in case)
+            raw_text = raw_text.strip()
+            if raw_text.startswith("```json"):
+                raw_text = raw_text[7:]
+            if raw_text.endswith("```"):
+                raw_text = raw_text[:-3]
+            raw_text = raw_text.strip()
+            
+            parsed_json = json.loads(raw_text)
+            return parsed_json
+            
+    except Exception as e:
+        error_msg = str(e)
+        if api_key in error_msg:
+            error_msg = error_msg.replace(api_key, "MASKED_KEY")
+        print(f"[GEMINI API HATA] Yapay zeka motoru çağrılamadı: {error_msg}")
+        return None
 
-    # 2. Gerçek Yapay Zeka (Gemini) Raporunu Dene (Dil parametresi ile)
-    gemini_report = get_gemini_suggestion(tasks_data, lang=lang)
-    if gemini_report:
-        return gemini_report
-
-    # 3. FALLBACK: Kural Tabanlı Lokal Analiz Motoru (Çevrimdışı Mod)
+def generate_local_report(tasks, lang):
+    """
+    Yerel (offline) raporlama motoru: Yapay zeka olmadığında iki dilde analiz raporu üretir.
+    """
     conflicts = []
     for i in range(len(tasks)):
         for j in range(i + 1, len(tasks)):
@@ -341,7 +103,6 @@ def analyze_and_optimize_tasks(tasks):
         )
     )
 
-    # Lokalleştirilmiş Rapor Şablonları
     report_templates = {
         'en': {
             'title': "### 🧠 AI Planning and Analysis Report\n",
@@ -506,14 +267,13 @@ def analyze_and_optimize_tasks(tasks):
     if conflicts:
         report_lines.append(t['overlap_intro'])
         for t1, t2 in conflicts:
-            # Periyot çevirisi
             period_tr = t1.period
             if lang == 'es':
                 period_tr = 'diario' if t1.period == 'daily' else 'semanal' if t1.period == 'weekly' else 'mensual'
             elif lang == 'fr':
                 period_tr = 'quotidien' if t1.period == 'daily' else 'hebdomadaire' if t1.period == 'weekly' else 'mensuel'
             elif lang == 'ar':
-                period_tr = 'يومي' if t1.period == 'daily' else 'أسبوعي' if t1.period == 'weekly' else 'شهري'
+                period_tr = 'يومي' if t1.period == 'daily' else 'أسبوعي' if t1.period == 'weekly' else 'شهri'
             elif lang == 'hi':
                 period_tr = 'दैनिक' if t1.period == 'daily' else 'साप्ताहिक' if t1.period == 'weekly' else 'मासिक'
             elif lang == 'en':
@@ -542,7 +302,6 @@ def analyze_and_optimize_tasks(tasks):
         status_icon = "✅" if task.is_completed else "⏳"
         priority_icon = "🔴" if task.priority == 'High' else "🟡" if task.priority == 'Medium' else "🟢"
         
-        # Öncelik çevirisi
         p_name = task.priority
         if lang == 'es':
             p_name = 'Alta' if task.priority == 'High' else 'Media' if task.priority == 'Medium' else 'Baja'
@@ -575,3 +334,188 @@ def analyze_and_optimize_tasks(tasks):
     report_lines.append(t['footer'])
     
     return "\n".join(report_lines)
+
+def get_gemini_chat_response(user_message, chat_history_list, tasks_data, lang='tr'):
+    """
+    Kullanıcının görevlerini, konuşma geçmişini ve son mesajını alarak
+    Google Gemini API'den interaktif, planlama odaklı bir yanıt üretir.
+    """
+    api_key = os.environ.get('AI_API_KEY') or os.environ.get('GEMINI_API_KEY')
+    if not api_key:
+        return None
+        
+    model_name = os.environ.get('GEMINI_MODEL', 'gemini-1.5-flash')
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+    
+    history_str = ""
+    for msg in chat_history_list:
+        role = "Kullanıcı" if msg['sender'] == 'user' else "Asistan (Sen)"
+        history_str += f"{role}: {msg['message']}\n"
+        
+    prompts = {
+        'en': (
+            "You are 'Glide', an intelligent time management and productivity assistant. "
+            "You converse in a friendly, goal-oriented manner to help the user optimize their daily schedule.\n\n"
+            f"User's Current Task List:\n{tasks_data}\n\n"
+            f"Conversation History:\n{history_str}\n"
+            f"User's Last Message: {user_message}\n\n"
+            "Please analyze their plan, answer questions, or reorder tasks based on this message in English. "
+            "If they request time, period, or priority updates, or want to shift tasks based on energy, "
+            "provide an optimized schedule and ask for their approval.\n"
+            "Always end your message with a guided, polite question to keep the conversation going. "
+            "Use Markdown formatting. Prefer a conversational, natural English language."
+        ),
+        'es': (
+            "Eres 'Glide', un asistente inteligente de gestión del tiempo y productividad. "
+            "Conversas de manera amistosa y orientada a los objetivos para ayudar al usuario a optimizar su horario diario.\n\n"
+            f"Lista de tareas actuales del usuario:\n{tasks_data}\n\n"
+            f"Historial de conversación:\n{history_str}\n"
+            f"Último mensaje del usuario: {user_message}\n\n"
+            "Analiza su plan, responde preguntas o reorganiza tareas según este mensaje en español. "
+            "Si solicitan actualizaciones de tiempo, periodo o prioridad, o desean cambiar tareas según la energía, "
+            "proporciona un horario optimizado y solicita su aprobación.\n"
+            "Termina siempre tu mensaje con una pregunta guiada y educada para mantener la conversación. "
+            "Usa el formato Markdown. Prefiere un lenguaje de conversación natural en español."
+        ),
+        'fr': (
+            "Vous êtes 'Glide', un assistant intelligent de gestion du temps et de productivité. "
+            "Vous discutez de manière amicale et axée sur les objectifs pour aider l'utilisateur à optimiser son planning quotidien.\n\n"
+            f"Liste des tâches actuelles de l'utilisateur :\n{tasks_data}\n\n"
+            f"Historique de la conversation :\n{history_str}\n"
+            f"Dernier message de l'utilisateur : {user_message}\n\n"
+            "Veuillez analyser son plan, répondre aux questions ou réordonner les tâches en fonction de ce message en français. "
+            "S'ils demandent des mises à jour de temps, de période ou de priorité, ou s'ils souhaitent déplacer des tâches en fonction de l'énergie, "
+            "fournissez un planning optimisé et demandez leur approbation.\n"
+            "Terminez toujours votre message par une question guidée et polie pour poursuivre la conversation. "
+            "Utilisez le format Markdown. Préférez un langage conversationnel naturel en français."
+        ),
+        'ar': (
+            "أنت 'Glide'، مساعد ذكي لإدارة الوقت والإنتاجية. "
+            "تتحدث بطريقة ودية وموجهة نحو الأهداف لمساعدة المستخدم على تحسين جدوله اليومي.\n\n"
+            f"قائمة المهام الحالية للمستخدم:\n{tasks_data}\n\n"
+            f"سجل المحادثة:\n{history_str}\n"
+            f"آخر رسالة للمستخدم: {user_message}\n\n"
+            "يرجى تحليل خطتهم، أو الإجابة على الأسئلة، أو إعادة ترتيب المهام بناءً على هذه الرسالة باللغة العربية. "
+            "إذا طلبوا تحديثات الوقت أو الفترة أو الأولوية، أو أرادوا تحويل المهام بناءً على الطاقة، "
+            "فقدم جدولاً زمنياً محسناً واطلب موافقتهم.\n"
+            "أنهِ رسالتك دائماً بسؤال موجه ومهذب لمواصلة المحادثة. "
+            "استخدم تنسيق Markdown. يفضل استخدام لغة حوار طبيعية باللغة العربية."
+        ),
+        'hi': (
+            "आप 'Glide' हैं, एक बुद्धिमान समय प्रबंधन और उत्पादकता सहायक। "
+            "आप उपयोगकर्ता के दैनिक कार्यक्रम को अनुकूलित करने में मदद करने के लिए एक दोस्ताना, लक्ष्य-उन्मुख तरीके से बातचीत करते हैं।\n\n"
+            f"उपयोगकर्ता की वर्तमान कार्य सूची:\n{tasks_data}\n\n"
+            f"बातचीत का इतिहास:\n{history_str}\n"
+            f"उपयोगकर्ता का अंतिम संदेश: {user_message}\n\n"
+            "कृपया इस संदेश के आधार पर हिंदी में उनकी योजना का विश्लेषण करें, प्रश्नों के उत्तर दें या कार्यों को पुनर्व्यवस्थित करें। "
+            "यदि वे समय, अवधि या प्राथमिकता अपडेट का अनुरोध करते हैं, या ऊर्जा के आधार पर कार्यों को स्थानांतरित करना चाहते हैं, "
+            "तो एक अनुकूलित कार्यक्रम प्रदान करें और उनकी स्वीकृति मांगें।\n"
+            "बातचीत को जारी रखने के लिए हमेशा अपने संदेश के अंत में एक निर्देशित, विनम्र प्रश्न पूछें। "
+            "Markdown स्वरूपण का उपयोग करें। बातचीत की स्वाभाविक हिंदी भाषा को प्राथमिकता दें।"
+        ),
+        'tr': (
+            "Sen akıllı zaman yönetimi ve verimlilik asistanı 'Glide'sın. "
+            "Kullanıcı ile dost canlısı ve çözüm odaklı konuşarak onun günlük planını optimize etmesine yardımcı oluyorsun.\n\n"
+            f"Kullanıcının Güncel Görev Listesi:\n{tasks_data}\n\n"
+            f"Konuşma Geçmişiniz:\n{history_str}\n"
+            f"Kullanıcının Son Mesajı: {user_message}\n\n"
+            "Lütfen bu son mesaja göre kullanıcının planını analiz et, sorularını yanıtla veya görevlerini sırala. "
+            "Eğer kullanıcı saat, periyot veya öncelik değişikliği gibi taleplerde bulunuyorsa veya enerjisine göre işleri kaydırmanı istiyorsa, "
+            "ona optimize edilmiş bir zaman çizelgesi sun ve bunu onaylayıp onaylamadığını sor.\n"
+            "Mesajının sonunda her zaman konuşmayı devam ettirecek yönlendirici ve nazik bir soru sor. "
+            "Markdown biçimlendirmesi kullan. Çok uzun olmayan, akıcı ve doğal bir konuşma dili tercih et."
+        )
+    }
+    
+    prompt = prompts.get(lang, prompts['tr'])
+    
+    headers = {'Content-Type': 'application/json'}
+    data = {
+        "contents": [{
+            "parts": [{
+                "text": prompt
+            }]
+        }]
+    }
+    
+    try:
+        req = urllib.request.Request(
+            url, 
+            data=json.dumps(data).encode('utf-8'), 
+            headers=headers, 
+            method='POST'
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
+            res_data = json.loads(response.read().decode('utf-8'))
+            return res_data['candidates'][0]['content']['parts'][0]['text']
+    except Exception as e:
+        error_msg = str(e)
+        if api_key in error_msg:
+            error_msg = error_msg.replace(api_key, "MASKED_KEY")
+        print(f"[GEMINI CHAT HATA] Sohbet motoru çağrılamadı: {error_msg}")
+        return None
+
+def check_overlap(task1, task2):
+    """İki görevin saat aralıklarının çakışıp çakışmadığını kontrol eder."""
+    t1_start = parse_time_to_minutes(task1.start_time)
+    t1_end = parse_time_to_minutes(task1.end_time)
+    t2_start = parse_time_to_minutes(task2.start_time)
+    t2_end = parse_time_to_minutes(task2.end_time)
+    return max(t1_start, t2_start) < min(t1_end, t2_end)
+
+def analyze_and_optimize_tasks(tasks):
+    """
+    Görev listesini analiz eder:
+    - Zaman çakışmalarını bulur.
+    - Öncelik ve süre analizi yapar.
+    - Yapay zeka tavsiyeleri ve yeniden sıralanmış akıllı bir plan üretir (Bilingual Dict formatında).
+    """
+    if not tasks:
+        return {
+            "ai_evaluation_tr": "Henüz değerlendirilecek bir görev eklemediniz. Lütfen birkaç görev ekleyin.",
+            "ai_evaluation_en": "You have not added any tasks to evaluate yet. Please add some tasks.",
+            "tasks_priority_order": []
+        }
+
+    # 1. Görev verilerini metne dönüştür
+    tasks_list = []
+    for idx, t in enumerate(tasks, 1):
+        status = 'Completed' if t.is_completed else 'Pending'
+        tasks_list.append(
+            f"Task {idx}: ID: {t.id}, Title: '{t.title}', Description: '{t.description}', "
+            f"Period: '{t.period}', Priority: '{t.priority}', "
+            f"Time Interval: '{t.start_time} - {t.end_time}', Status: '{status}'"
+        )
+    tasks_data = "\n".join(tasks_list)
+
+    # 2. Gerçek Yapay Zeka (Gemini) Raporunu Dene (İki dilli şema ile)
+    gemini_result = get_gemini_bilingual_suggestion(tasks_data)
+    if gemini_result and isinstance(gemini_result, dict) and 'ai_evaluation_tr' in gemini_result and 'ai_evaluation_en' in gemini_result:
+        return gemini_result
+
+    # 3. FALLBACK: Kural Tabanlı Lokal Analiz Motoru (Çevrimdışı Mod - Çift dilli)
+    report_tr = generate_local_report(tasks, 'tr')
+    report_en = generate_local_report(tasks, 'en')
+
+    priority_weights = {'High': 3, 'Medium': 2, 'Low': 1}
+    sorted_tasks = sorted(
+        tasks,
+        key=lambda t: (
+            t.period,
+            -priority_weights.get(t.priority, 2),
+            parse_time_to_minutes(t.start_time)
+        )
+    )
+
+    tasks_priority_order = []
+    for idx, t in enumerate(sorted_tasks, 1):
+        tasks_priority_order.append({
+            "id": t.id,
+            "priority_order": idx
+        })
+
+    return {
+        "ai_evaluation_tr": report_tr,
+        "ai_evaluation_en": report_en,
+        "tasks_priority_order": tasks_priority_order
+    }

@@ -169,7 +169,7 @@ erDiagram
   * **İnteraktif Öneri Çipleri (Suggestion Chips):** Kullanıcının hızlı analizler yapabilmesi için tek tıkla otomatik komut gönderen butonlar arayüze yerleştirilmiştir.
   * **Görsel Avatarlar:** Sohbet balonlarının yanında kullanıcıların kendi profillerindeki avatar resimleri ve yapay zeka için CPU asistan simgeleri gösterilmektedir.
   * **Geçmişi Temizleme Desteği:** Rotalara `/ai/chat/clear` (POST) eklenerek kullanıcının tek tıkla sohbet geçmişini veritabanından dinamik ve güvenli silmesi sağlanmıştır.
-  * **Esnek Model Yapılandırması:** Sistem, `.env` üzerinden `GEMINI_MODEL=gemini-2.0-flash` gibi çevre değişkenleri ile Google'ın en güncel yapay zeka modellerini dinamik olarak çağırabilecek şekilde esnekleştirilmiştir.
+  * **Esnek Model Yapılandırması:** Sistem, `.env` üzerinden `GEMINI_MODEL=gemini-2.5-flash` gibi çevre değişkenleri ile Google'ın en güncel yapay zeka modellerini dinamik olarak çağırabilecek şekilde esnekleştirilmiştir. Canlı entegrasyonda en büyük zorluk olan 'Yapay zekanın her zaman kararlı JSON dönmesi' problemi, sıkı bir Sistem Promptu (System Instructions) ve JSON Şeması (Schema Enforcement) tasarımıyla çözülmüş, `"responseMimeType": "application/json"` parametresi eklenerek her koşulda kararlı çıktı alınması garantilenmiştir.
   * **Log Sızıntısı Kalkanı (Siber Güvenlik Hardening):** Sunucu hata yakalama mekanizmaları (`app/ai_engine.py`) güçlendirilmiş, olası hatalarda API anahtarının konsol loglarına sızması `MASKED_KEY` filtresi ile tamamen engellenmiştir.
 
 

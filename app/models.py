@@ -29,6 +29,7 @@ class Task(db.Model):
     end_time = db.Column(db.String(5), nullable=False)                       # HH:MM formatı
     is_completed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    priority_order = db.Column(db.Integer, default=0, nullable=True)
     
     # Kullanıcı ilişkisi
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -38,10 +39,24 @@ class AISuggestion(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     suggestion_text = db.Column(db.Text, nullable=False)
+    ai_evaluation_tr = db.Column(db.Text, nullable=True)
+    ai_evaluation_en = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Kullanıcı ilişkisi
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    @property
+    def localized_text(self):
+        try:
+            from flask_babel import get_locale
+            lang = str(get_locale())
+        except Exception:
+            lang = 'tr'
+            
+        if lang == 'en':
+            return self.ai_evaluation_en or self.suggestion_text
+        return self.ai_evaluation_tr or self.suggestion_text
 
 class ChatHistory(db.Model):
     __tablename__ = 'chat_histories'

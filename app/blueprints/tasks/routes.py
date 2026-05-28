@@ -175,10 +175,27 @@ def ai_optimize():
         return redirect(url_for('tasks.dashboard'))
         
     # AI analizi ve optimizasyon motorunu çalıştır
-    result_text = analyze_and_optimize_tasks(tasks)
+    result = analyze_and_optimize_tasks(tasks)
     
+    # priority_order alanlarını güvenle güncelle
+    if isinstance(result, dict) and 'tasks_priority_order' in result:
+        for item in result['tasks_priority_order']:
+            task_id = item.get('id')
+            order_val = item.get('priority_order')
+            task_to_update = Task.query.filter_by(id=task_id, user_id=current_user.id).first()
+            if task_to_update:
+                task_to_update.priority_order = order_val
+                
     # Yeni öneriyi veritabanına kaydet
-    new_suggestion = AISuggestion(suggestion_text=result_text, user_id=current_user.id)
+    ai_evaluation_tr = result.get('ai_evaluation_tr', '') if isinstance(result, dict) else result
+    ai_evaluation_en = result.get('ai_evaluation_en', '') if isinstance(result, dict) else result
+    
+    new_suggestion = AISuggestion(
+        suggestion_text=ai_evaluation_tr,
+        ai_evaluation_tr=ai_evaluation_tr,
+        ai_evaluation_en=ai_evaluation_en,
+        user_id=current_user.id
+    )
     db.session.add(new_suggestion)
     db.session.commit()
     
@@ -191,13 +208,12 @@ def ai_planner():
     latest_suggestion = AISuggestion.query.filter_by(user_id=current_user.id).order_by(AISuggestion.created_at.desc()).first()
     tasks = Task.query.filter_by(user_id=current_user.id).all()
     
-    # Yapay zekanın önerdiği öncelik sıralaması
-    priority_weights = {'High': 3, 'Medium': 2, 'Low': 1}
+    # Görevleri öncelikle periyoda, ardından yapay zeka tarafından belirlenen priority_order değerine göre sırala
     sorted_tasks = sorted(
         tasks, 
         key=lambda t: (
             t.period, 
-            -priority_weights.get(t.priority, 2), 
+            t.priority_order or 9999, 
             parse_time_to_minutes(t.start_time)
         )
     )
@@ -213,7 +229,12 @@ def ai_planner():
 def ai_chat():
     from flask_babel import get_locale
     lang = str(get_locale())
-    api_key_configured = bool(current_app.config.get('GEMINI_API_KEY') or os.environ.get('GEMINI_API_KEY'))
+    api_key_configured = bool(
+        current_app.config.get('AI_API_KEY') or 
+        os.environ.get('AI_API_KEY') or 
+        current_app.config.get('GEMINI_API_KEY') or 
+        os.environ.get('GEMINI_API_KEY')
+    )
     
     if request.method == 'POST':
         user_message = request.form.get('message', '').strip()
@@ -383,7 +404,7 @@ def ai_chat():
                 elif lang == 'ar':
                     ai_response = f"مرحباً **{current_user.username}**! أنا مساعد التخطيط الذكي الخاص بك Glide AI. كيف حالك اليوم؟ يمكننا تنظيم مهامك وجدولك معاً."
                 elif lang == 'hi':
-                    ai_response = f"नमस्ते **{current_user.username}**! मैं आपका स्मार्ट प्लानिंग असिस्टेंट Glide AI हूँ। आज आप कैसे हैं? हम मिलकर आपके कार्यों और कार्यक्रम को व्यवस्थित कर सकते हैं।"
+                    ai_response = f"नमस्ते **{current_user.username}**! मैं आपका स्मार्ट प्लानिंग असिस्टेंट Glide AI हूँ। आज आप कैसे हैं? हम मिलकर आपके कार्यों और कार्यक्रम को व्यवस्थित कर सकते हैं."
                 else:
                     ai_response = f"Merhaba **{current_user.username}**! Harika bir sohbet olsun. Ben senin akıllı asistanın Glide. Bugün nasılsın? Kalan işlerini ve zaman planını birlikte organize edebiliriz."
             elif wants_help:
@@ -400,18 +421,40 @@ def ai_chat():
                 else:
                     ai_response = "Ben senin akıllı zaman yönetimi asistanın **Glide AI**. Sana şu konularda yardımcı olabilirim:\n1. 🕒 **Zaman Çakışması Analizi**\n2. ⭐ **Akıllı Öncelik Sıralaması**\n3. 💬 **Sohbet & Verimlilik Tavsiyeleri**\n\nDenemek için bana bir mesaj yazabilirsin!"
             else:
+                completed_count = sum(1 for t in tasks if t.is_completed)
+                total_count = len(tasks)
+                
+                tips_pool_tr = [
+                    "Pomodoro Tekniği'ni kullanarak 25 dakika çalışma ve 5 dakika mola düzenini denemelisin.",
+                    "Öncelik sıralamasında 'Yüksek' olan görevleri günün en enerjik olduğun ilk saatlerinde tamamlamaya odaklan.",
+                    "İş yükünü hafifletmek için büyük görevleri daha küçük ve yönetilebilir alt adımlara bölebilirsin.",
+                    "80/20 kuralına göre, sonuçlarının %80'i çabalarının %20'sinden gelir. En kritik işe odaklan."
+                ]
+                import random
+                tip_tr = random.choice(tips_pool_tr)
+                
+                tips_pool_en = [
+                    "Try using the Pomodoro Technique: 25 minutes of work followed by a 5-minute break.",
+                    "Focus on completing 'High' priority tasks during the first hours of the day when your energy is highest.",
+                    "To ease your workload, try breaking large tasks into smaller, manageable sub-steps.",
+                    "According to the 80/20 rule, 80% of results come from 20% of efforts. Focus on the most critical tasks."
+                ]
+                tip_en = random.choice(tips_pool_en)
+                
                 if lang == 'en':
-                    ai_response = "I received your message! As your smart assistant, I am here to help you sort tasks, analyze schedule conflicts, or offer productivity advice in this offline mode."
-                elif lang == 'es':
-                    ai_response = "¡He recibido tu mensaje! Como tu asistente inteligente, estoy aquí para ayudarte a ordenar tareas, analizar conflictos de horarios o brindarte consejos en este modo fuera de línea."
-                elif lang == 'fr':
-                    ai_response = "J'ai bien reçu votre message ! En tant qu'assistant intelligent, je suis là pour vous aider à trier les tâches, analyser les conflits horaires ou vous donner des conseils en mode hors ligne."
-                elif lang == 'ar':
-                    ai_response = "لقد استلمت رسالتك! كمساعدك الذكي، أنا هنا لمساعدتك في ترتيب المهام، أو تحليل تداخل الجدول، أو تقديم نصائح الإنتاجية في هذا الوضع غير المتصل بالإنترنت."
-                elif lang == 'hi':
-                    ai_response = "मुझे आपका संदेश मिल गया है! आपके स्मार्ट सहायक के रूप में, मैं इस ऑफ़लाइन मोड में कार्यों को क्रमबद्ध करने, समय संघर्षों का विश्लेषण करने या उत्पादकता सलाह देने के लिए यहाँ हूँ।"
+                    ai_response = (
+                        f"I received your message! Since we are currently in offline simulation mode, I analyzed your task list: "
+                        f"You have **{total_count}** tasks, with **{completed_count}** completed.\n\n"
+                        f"💡 **Custom tip for you:** {tip_en}\n\n"
+                        f"Would you like me to sort your tasks or do you have any other questions?"
+                    )
                 else:
-                    ai_response = "Sohbet mesajını aldım! Glide asistanı olarak seninle konuşmak harika. Bu çevrimdışı simülasyon modunda görevlerini öncelik sırasına göre sıralamamı veya saat çakışmalarını kontrol etmemi ister misin?"
+                    ai_response = (
+                        f"Sohbet mesajını aldım! Çevrimdışı simülasyon modunda olsak da görev listeni senin için inceledim: "
+                        f"Şu an planında **{total_count}** adet görev var ve bunlardan **{completed_count}** tanesini tamamlamışsın.\n\n"
+                        f"💡 **Sana özel tavsiyem:** {tip_tr}\n\n"
+                        f"Görevlerini öncelik sırasına göre dizmemi veya saat çakışmalarını kontrol etmemi ister misin?"
+                    )
             
         # 4. Yapay zekanın yanıtını kaydet
         ai_chat = ChatHistory(message=ai_response, sender='ai', user_id=current_user.id)

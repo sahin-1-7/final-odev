@@ -150,7 +150,7 @@
                 <div class="card-body p-4 pt-2">
                     {% if suggestion %}
                         <!-- Gizli ham metin -->
-                        <textarea id="suggestion-raw" class="d-none">{{ suggestion.suggestion_text }}</textarea>
+                        <textarea id="suggestion-raw" class="d-none">{{ suggestion.localized_text }}</textarea>
                         <!-- Biçimlendirilmiş HTML Çıktısı -->
                         <div id="suggestion-rendered" class="suggestion-content">
                             <!-- JS ile render edilecek -->
