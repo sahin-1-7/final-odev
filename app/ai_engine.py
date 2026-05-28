@@ -59,7 +59,7 @@ def get_gemini_bilingual_suggestion(tasks_data):
             headers=headers, 
             method='POST'
         )
-        with urllib.request.urlopen(req, timeout=15) as response:
+        with urllib.request.urlopen(req, timeout=5) as response:
             res_data = json.loads(response.read().decode('utf-8'))
             raw_text = res_data['candidates'][0]['content']['parts'][0]['text']
             
@@ -262,6 +262,13 @@ def generate_local_report(tasks, lang):
     report_lines.append(t['medium'].format(medium_count=medium_count))
     report_lines.append(t['low'].format(low_count=low_count))
     
+    failed_count = sum(1 for t_item in tasks if t_item.is_failed)
+    if failed_count > 0:
+        if lang == 'en':
+            report_lines.append(f"- ⚠️ **Missed Tasks:** {failed_count} tasks could not be completed within their scheduled time.")
+        else:
+            report_lines.append(f"- ⚠️ **Süresi Geçen / Yapılamayan:** {failed_count} adet görev zaman aralığında tamamlanamadı.")
+            
     # 2. Çakışma Analizi ve Uyarılar
     report_lines.append(t['overlap_title'])
     if conflicts:
@@ -323,6 +330,14 @@ def generate_local_report(tasks, lang):
     
     # 4. Kişiselleştirilmiş Tavsiyeler (Dinamik)
     report_lines.append(t['tips_title'])
+    
+    failed_count = sum(1 for t_item in tasks if t_item.is_failed)
+    if failed_count > 0:
+        if lang == 'en':
+            report_lines.append("- 💡 **Recovery Strategy:** You have tasks that passed their time limit. Try replanning them using the **Eisenhower Matrix** or allocate dedicated 25-minute **Pomodoro** blocks tomorrow.")
+        else:
+            report_lines.append("- 💡 **Telafi Önerisi:** Süresi geçen ve yapılamayan görevleriniz bulunmaktadır. Bu görevleri **Eisenhower Matrisi** kullanarak acil/önemli dengesinde yeniden planlayın veya yarın için özel **Pomodoro** blokları ayırın.")
+
     if high_count > 3:
         report_lines.append(t['tips_high_many'])
     else:
@@ -480,7 +495,12 @@ def analyze_and_optimize_tasks(tasks):
     # 1. Görev verilerini metne dönüştür
     tasks_list = []
     for idx, t in enumerate(tasks, 1):
-        status = 'Completed' if t.is_completed else 'Pending'
+        if t.is_completed:
+            status = 'Completed'
+        elif t.is_failed:
+            status = 'Failed (Time passed, Uncompleted)'
+        else:
+            status = 'Pending'
         tasks_list.append(
             f"Task {idx}: ID: {t.id}, Title: '{t.title}', Description: '{t.description}', "
             f"Period: '{t.period}', Priority: '{t.priority}', "

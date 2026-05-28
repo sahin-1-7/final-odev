@@ -173,6 +173,14 @@ erDiagram
   * **Log Sızıntısı Kalkanı (Siber Güvenlik Hardening):** Sunucu hata yakalama mekanizmaları (`app/ai_engine.py`) güçlendirilmiş, olası hatalarda API anahtarının konsol loglarına sızması `MASKED_KEY` filtresi ile tamamen engellenmiştir.
 
 
+### 🔌 Güvenli RESTful API & Gerçek Zamanlı Bildirim Motoru (Bonus +5 Puan)
+* **API Güvenliği ve İzolasyon (BOLA/IDOR Koruması):** Uygulamamıza profesyonel bir çehre kazandıran `/api/v1/tasks` RESTful API endpoint'lerini geliştirdik. Jürinin siber güvenlik hassasiyetlerini göz önünde bulundurarak, API rotalarında sıkı bir yetkilendirme (Authorization) mimarisi uyguladık. Dışarıdan gelen POST isteklerindeki JSON verilerini backend'deki saat çakışma algoritmamızla denetleyerek veri bütünlüğünü koruduk. API'den dönen tüm JSON yanıt şemalarına yapay zeka optimizasyon çıktılarını entegre ettik ve mesajları Flask-Babel ile iki dilli hale getirerek +5 bonus puanı daha mimari bütünlükle projemize kazandırdık. (Görsel: API_Postman_Security_Test.png)
+* **Gerçek Zamanlı Geri Sayım & 0sn Bildirim Garantisi:**
+  - Arayüzde yer alan Bootstrap Toast sayacı ve işletim sistemi düzeyindeki yerel Web Bildirimleri (Web Notifications) sistemi tamamen modernize edildi.
+  - Görevlerin başlangıcına kalan süre `"Başlamasına X dk kaldı"`, başlangıç süresi geçtikten sonra ise `"Bitmesine Y dk kaldı"` olacak şekilde dinamik olarak güncellenmektedir.
+  - Tüm süreler yukarı yuvarlanmış tam dakikalar (`Math.ceil`) formatında sunulmaktadır.
+  - Milisaniyelik kaymaları önleyen durum makinesi tabanlı **Transizyonel Bildirim Garantisi** sayesinde tam `0` saniyede `"Görev Başladı!"` ve `"Görev Bitti!"` bildirimlerinin atlanmaksızın tam bir kez fırlatılması sağlandı.
+
 ### 🧹 Temiz Kod (Clean Code) ve Merkezi Mimari
 * **Merkezi Modül Entegrasyonu:** Kod tekrarını sıfırlamak ve sürdürülebilirliği artırmak amacıyla `app/utils.py` dosyası projeye entegre edilmiştir. 
 * **Dosya Görev Bölüşümü:** Şifre sıfırlama token doğrulamaları, e-posta oluşturma mantığı (`send_reset_email`) ve zaman dönüştürme araçları (`parse_time_to_minutes`) tek bir merkezde toplanarak Blueprint rotalarındaki karmaşıklık giderilmiştir.

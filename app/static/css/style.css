@@ -323,4 +323,18 @@ body {
     box-shadow: 0 0 15px rgba(0, 108, 53, 0.4) !important;
 }
 
+/* Süresi Geçen / Yapılamayan Görev Stilleri (Crimson Cam Efekti) */
+.task-item.failed-task {
+    opacity: 0.85;
+    border-left-color: var(--danger-color);
+    background: rgba(239, 68, 68, 0.03);
+    border-color: rgba(239, 68, 68, 0.12);
+}
+
+.task-item.failed-task:hover {
+    background: rgba(239, 68, 68, 0.05);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.08);
+}
+
+
 

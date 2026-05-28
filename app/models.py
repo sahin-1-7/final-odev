@@ -17,6 +17,15 @@ class User(db.Model, UserMixin):
     suggestions = db.relationship('AISuggestion', backref='owner', lazy=True, cascade="all, delete-orphan")
     chat_history = db.relationship('ChatHistory', backref='owner', lazy=True, cascade="all, delete-orphan")
 
+    @property
+    def api_key(self):
+        """Kullanıcı için kriptografik olarak imzalanmış ve doğrulanabilir benzersiz bir API anahtarı üretir."""
+        from itsdangerous import URLSafeTimedSerializer as Serializer
+        from flask import current_app
+        s = Serializer(current_app.config['SECRET_KEY'])
+        return s.dumps({'user_id': self.id})
+
+
 class Task(db.Model):
     __tablename__ = 'tasks'
     
@@ -33,6 +42,20 @@ class Task(db.Model):
     
     # Kullanıcı ilişkisi
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    @property
+    def is_failed(self):
+        """Görevin süresi geçmiş ve hala tamamlanmamışsa True döner (Yapılamadı)."""
+        if self.is_completed:
+            return False
+        from datetime import datetime
+        from app.utils import parse_time_to_minutes
+        
+        now_str = datetime.now().strftime("%H:%M")
+        now_min = parse_time_to_minutes(now_str)
+        end_min = parse_time_to_minutes(self.end_time)
+        return now_min > end_min
+
 
 class AISuggestion(db.Model):
     __tablename__ = 'ai_suggestions'

@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, request, flash, jsonify, current_app
+from flask import render_template, redirect, url_for, request, flash, jsonify, current_app, session
 import os
 from flask_login import login_required, current_user
 from flask_babel import gettext as _
@@ -174,6 +174,15 @@ def ai_optimize():
         flash(_('Yapay zeka analizi için en az bir görev tanımlamış olmalısınız.'), 'warning')
         return redirect(url_for('tasks.dashboard'))
         
+    # Akıllı Oturum Önbelleği (Intelligent Session Caching):
+    # Görevlerin sayısı, tamamlanma durumları, periyotları ve başlangıç/bitiş zamanlarından imza oluştur
+    tasks_signature = "|".join([f"{t.id}:{t.is_completed}:{t.period}:{t.start_time}:{t.end_time}" for t in tasks])
+    if session.get('last_tasks_signature') == tasks_signature:
+        latest_suggestion = AISuggestion.query.filter_by(user_id=current_user.id).order_by(AISuggestion.created_at.desc()).first()
+        if latest_suggestion:
+            flash(_('Görevlerinizde değişiklik olmadığı için önceki yapay zeka analizi anında yüklendi!'), 'success')
+            return redirect(url_for('tasks.ai_planner'))
+            
     # AI analizi ve optimizasyon motorunu çalıştır
     result = analyze_and_optimize_tasks(tasks)
     
@@ -197,6 +206,9 @@ def ai_optimize():
         user_id=current_user.id
     )
     db.session.add(new_suggestion)
+    
+    # Oturum imzasını kaydet
+    session['last_tasks_signature'] = tasks_signature
     db.session.commit()
     
     flash(_('Görevleriniz yapay zeka tarafından başarıyla analiz edildi!'), 'success')

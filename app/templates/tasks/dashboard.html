@@ -85,8 +85,11 @@
                     <i class="bi bi-cpu-fill text-info fs-1 mb-2 d-inline-block"></i>
                     <h5 class="fw-bold text-white mb-2">{{ _('Yapay Zeka Analizi') }}</h5>
                     <p class="text-secondary small mb-4">{{ _('Görev çakışmalarını tespit edin, önceliklerinize göre optimize edilmiş programınızı yapay zeka ile hemen oluşturun.') }}</p>
-                    <form method="POST" action="{{ url_for('tasks.ai_optimize') }}">
-                        <button type="submit" class="btn btn-outline-info w-100 py-2"><i class="bi bi-magic me-1"></i>{{ _('Planı Optimize Et') }}</button>
+                    <form method="POST" action="{{ url_for('tasks.ai_optimize') }}" id="ai-optimize-form">
+                        <button type="submit" class="btn btn-outline-info w-100 py-2" id="ai-optimize-btn">
+                            <i class="bi bi-magic me-1" id="ai-optimize-icon"></i>
+                            <span id="ai-optimize-text">{{ _('Planı Optimize Et') }}</span>
+                        </button>
                     </form>
                 </div>
             </div>
@@ -129,13 +132,15 @@
                     {% if tasks %}
                         <div class="task-list">
                             {% for task in tasks %}
-                                <div class="task-item priority-{{ task.priority }} {% if task.is_completed %}completed{% endif %} d-flex align-items-center justify-content-between gap-3">
+                                <div class="task-item priority-{{ task.priority }} {% if task.is_completed %}completed{% elif task.is_failed %}failed-task{% endif %} d-flex align-items-center justify-content-between gap-3">
                                     <div class="d-flex align-items-center gap-3">
                                         <!-- Tamamlama Butonu -->
                                         <form method="POST" action="{{ url_for('tasks.complete_task', task_id=task.id) }}" class="m-0">
                                             <button type="submit" class="btn btn-link p-0 text-decoration-none shadow-none">
                                                 {% if task.is_completed %}
                                                     <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                                                {% elif task.is_failed %}
+                                                    <i class="bi bi-x-circle text-danger fs-4" title="{{ _('Yapılamadı') }}"></i>
                                                 {% else %}
                                                     <i class="bi bi-circle text-secondary fs-4"></i>
                                                 {% endif %}
@@ -179,6 +184,14 @@
                                             <div class="d-flex align-items-center gap-2.5 mt-1.5 text-secondary fs-7">
                                                 <i class="bi bi-clock"></i>
                                                 <span>{{ task.start_time }} - {{ task.end_time }}</span>
+                                                <span class="mx-1">&bull;</span>
+                                                {% if task.is_completed %}
+                                                    <span class="badge bg-success-subtle text-success fs-8 rounded"><i class="bi bi-check-circle-fill me-1"></i>{{ _('Tamamlandı') }}</span>
+                                                {% elif task.is_failed %}
+                                                    <span class="badge bg-danger-subtle text-danger fs-8 rounded"><i class="bi bi-x-circle-fill me-1"></i>{{ _('Yapılamadı') }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning-subtle text-warning fs-8 rounded"><i class="bi bi-hourglass-split me-1"></i>{{ _('Bekliyor') }}</span>
+                                                {% endif %}
                                                 <span class="mx-1">&bull;</span>
                                                 {% if task.priority == 'High' %}
                                                     <span class="text-danger fw-semibold"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ _('Yüksek Öncelik') }}</span>
@@ -422,6 +435,27 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+    // AI Optimizasyon Butonu Yükleniyor Durumu Kontrolü
+    const aiForm = document.getElementById('ai-optimize-form');
+    if (aiForm) {
+        aiForm.addEventListener('submit', function() {
+            const btn = document.getElementById('ai-optimize-btn');
+            const icon = document.getElementById('ai-optimize-icon');
+            const text = document.getElementById('ai-optimize-text');
+            
+            if (btn) {
+                btn.disabled = true;
+                btn.classList.add('active');
+            }
+            if (icon) {
+                icon.className = "spinner-border spinner-border-sm me-1";
+                icon.style.animationDuration = "0.75s";
+            }
+            if (text) {
+                text.textContent = "{{ _('Yapay Zeka Analiz Ediyor...') }}";
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

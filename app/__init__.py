@@ -9,9 +9,19 @@ def get_locale():
     lang = request.args.get('lang')
     allowed_langs = ['tr', 'en', 'fr', 'es', 'hi', 'ar']
     if lang in allowed_langs:
-        session['lang'] = lang
+        try:
+            session['lang'] = lang
+        except Exception:
+            pass
         return lang
-    return session.get('lang', request.accept_languages.best_match(allowed_langs) or 'tr')
+    
+    try:
+        sess_lang = session.get('lang')
+    except Exception:
+        sess_lang = None
+        
+    return sess_lang or request.accept_languages.best_match(allowed_langs) or 'tr'
+
 
 def create_app(config_class=Config):
     app = Flask(__name__)

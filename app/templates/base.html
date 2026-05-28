@@ -136,6 +136,229 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <!-- Dynamic Bootstrap Toast Container (API Notifications) -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+        <div id="apiNotificationToast" class="toast align-items-center text-white bg-dark border-0 shadow rounded-4" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="10000">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2.5">
+                    <i class="bi bi-bell-fill text-info fs-5" id="toastIcon"></i>
+                    <div id="toastMessage" class="fs-7"></div>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto shadow-none" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+
+    {% if current_user.is_authenticated %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let tasksCache = [];
+        let activeToast = null;
+        let notifiedBoundaries = {}; // Her dakika geçişinde bildirim kontrolü
+
+        function showNotification(title, message, isStart = true) {
+            // 1. Arayüz içi Bootstrap Toast Bildirimi
+            const toastEl = document.getElementById('apiNotificationToast');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            if (toastEl && toastMessage) {
+                toastMessage.innerHTML = message;
+                if (toastIcon) {
+                    toastIcon.className = isStart 
+                        ? "bi bi-bell-fill text-info fs-5 animate-pulse" 
+                        : "bi bi-exclamation-octagon-fill text-danger fs-5 animate-pulse";
+                }
+                
+                // Geri sayım boyunca kalıcı olması için autohide'ı kapatıyoruz
+                if (!activeToast) {
+                    activeToast = new bootstrap.Toast(toastEl, { autohide: false });
+                    activeToast.show();
+                }
+            }
+        }
+
+        // Web Bildirim İzni Talep Et
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+
+        function updateNotifications() {
+            if (tasksCache.length === 0) return;
+
+            const now = new Date();
+            const nowMs = now.getTime();
+            const isTr = "{{ session.get('lang', 'tr') }}" === "tr";
+
+            let urgentTask = null;
+            let isStartCountdown = true;
+            let remainingSeconds = 0;
+
+            // Saat parçalayıp bugünün tarih nesnesini üreten yardımcı
+            const parseTimeToDate = (timeStr) => {
+                const d = new Date();
+                const parts = timeStr.split(':');
+                d.setHours(parseInt(parts[0], 10), parseInt(parts[1], 10), 0, 0);
+                return d;
+            };
+
+            tasksCache.forEach(task => {
+                if (task.is_completed) return;
+
+                const startDate = parseTimeToDate(task.start_time);
+                const endDate = parseTimeToDate(task.end_time);
+
+                const diffStartMs = startDate.getTime() - nowMs;
+                const diffEndMs = endDate.getTime() - nowMs;
+
+                // Transizyonel Bildirim Garantisi (Her görevin başlama/bitme anını kaçırmamak için)
+                if (diffStartMs <= 0) {
+                    const startZeroKey = `${task.id}_start_0`;
+                    if (!notifiedBoundaries[startZeroKey]) {
+                        notifiedBoundaries[startZeroKey] = true;
+                        if (Notification.permission === "granted") {
+                            const notifyTitle = isTr ? "Görev Başladı!" : "Task Started!";
+                            const notifyBody = isTr 
+                                ? `'${task.title}' görevi başladı.` 
+                                : `Task '${task.title}' has started.`;
+                            new Notification(notifyTitle, { body: notifyBody, icon: '/static/uploads/default_avatar.png' });
+                        }
+                    }
+                }
+
+                if (diffEndMs <= 0) {
+                    const endZeroKey = `${task.id}_end_0`;
+                    if (!notifiedBoundaries[endZeroKey]) {
+                        notifiedBoundaries[endZeroKey] = true;
+                        if (Notification.permission === "granted") {
+                            const notifyTitle = isTr ? "Görev Bitti!" : "Task Ended!";
+                            const notifyBody = isTr 
+                                ? `'${task.title}' görevi bitti.` 
+                                : `Task '${task.title}' has ended.`;
+                            new Notification(notifyTitle, { body: notifyBody, icon: '/static/uploads/default_avatar.png' });
+                        }
+                    }
+                }
+
+                // 1. Başlangıç Kontrolü (15 dakika = 900,000 ms)
+                if (diffStartMs >= 0 && diffStartMs <= 15 * 60 * 1000) {
+                    // En yakın başlangıçlı tamamlanmamış görevi bul
+                    if (!urgentTask || (isStartCountdown && diffStartMs < (parseTimeToDate(urgentTask.start_time).getTime() - nowMs))) {
+                        urgentTask = task;
+                        isStartCountdown = true;
+                        remainingSeconds = Math.max(0, Math.floor(diffStartMs / 1000));
+                    }
+                } 
+                // 2. Başlangıç saati geçmiş ama bitiş saati gelmemiş (Aktif Görev Geri Sayımı)
+                else if (diffStartMs < 0 && diffEndMs >= 0) {
+                    // En yakın bitişli tamamlanmamış görevi bul
+                    if (!urgentTask || (isStartCountdown) || (!isStartCountdown && diffEndMs < (parseTimeToDate(urgentTask.end_time).getTime() - nowMs))) {
+                        urgentTask = task;
+                        isStartCountdown = false;
+                        remainingSeconds = Math.max(0, Math.floor(diffEndMs / 1000));
+                    }
+                }
+            });
+
+            const toastEl = document.getElementById('apiNotificationToast');
+            const toastMessage = document.getElementById('toastMessage');
+
+            if (urgentTask && toastEl && toastMessage) {
+                const ceilMinutes = Math.ceil(remainingSeconds / 60);
+                
+                // Dil seçimine göre dinamik etiketler
+                const startLabel = isTr ? "Başlamasına" : "Time to start";
+                const endLabel = isTr ? "Bitmesine" : "Time to end";
+                const minLabel = isTr ? "dk" : "min";
+                const secLabel = isTr ? "sn" : "sec";
+                const leftLabel = isTr ? "kaldı" : "left";
+                const startedText = isTr ? "başladı!" : "started!";
+                const endedText = isTr ? "bitti!" : "ended!";
+                
+                const countdownTitle = isStartCountdown 
+                    ? (isTr ? "Görev Başlangıcı Yaklaşıyor!" : "Task Starting Soon!") 
+                    : (isTr ? "Görev Bitişi Yaklaşıyor!" : "Task Ending Soon!");
+
+                let htmlContent = "";
+                if (remainingSeconds > 0) {
+                    htmlContent = `<strong>${countdownTitle}</strong><br>` +
+                                  `'${urgentTask.title}' ${isStartCountdown ? startLabel : endLabel}: ` +
+                                  `<strong>${ceilMinutes} ${minLabel}</strong> ${leftLabel}.`;
+                } else {
+                    htmlContent = `<strong>${isStartCountdown ? (isTr ? "Görev Başladı!" : "Task Started!") : (isTr ? "Görev Bitti!" : "Task Ended!")}</strong><br>` +
+                                  `'${urgentTask.title}' ${isStartCountdown ? startedText : endedText} ` +
+                                  `<strong>0 ${secLabel}</strong> ${leftLabel}.`;
+                }
+
+                showNotification(countdownTitle, htmlContent, isStartCountdown);
+
+                // Dakika geçiş sınırlarında bir kez yerel tarayıcı bildirimi fırlat (0 sn için transizyonel garanti devrede)
+                if (remainingSeconds > 0) {
+                    const boundaryKey = `${urgentTask.id}_${isStartCountdown ? 'start' : 'end'}_${ceilMinutes}`;
+                    if (!notifiedBoundaries[boundaryKey]) {
+                        notifiedBoundaries[boundaryKey] = true;
+                        
+                        if (Notification.permission === "granted") {
+                            let notifyTitle = "";
+                            let notifyBody = "";
+                            
+                            if (isStartCountdown) {
+                                notifyTitle = isTr ? "Görev Başlangıcı" : "Task Starting";
+                                notifyBody = isTr 
+                                    ? `'${urgentTask.title}' görevinin başlamasına ${ceilMinutes} dk kaldı.` 
+                                    : `${ceilMinutes} min left until '${urgentTask.title}' starts.`;
+                            } else {
+                                notifyTitle = isTr ? "Görev Bitişi" : "Task Ending";
+                                notifyBody = isTr 
+                                    ? `'${urgentTask.title}' görevinin bitmesine ${ceilMinutes} dk kaldı.` 
+                                    : `${ceilMinutes} min left until '${urgentTask.title}' ends.`;
+                            }
+                            
+                            new Notification(notifyTitle, {
+                                body: notifyBody,
+                                icon: '/static/uploads/default_avatar.png'
+                            });
+                        }
+                    }
+                }
+            } else {
+                // Herhangi bir acil görev kalmadıysa toast'u gizle
+                if (activeToast) {
+                    const toastInstance = bootstrap.Toast.getInstance(toastEl);
+                    if (toastInstance) {
+                        toastInstance.hide();
+                    }
+                    activeToast = null;
+                }
+            }
+        }
+
+        function fetchTasksForNotifications() {
+            fetch('/api/v1/tasks')
+                .then(response => {
+                    if (response.status === 200) return response.json();
+                    throw new Error('API unavailable');
+                })
+                .then(data => {
+                    if (data.success && data.tasks) {
+                        tasksCache = data.tasks;
+                        updateNotifications();
+                    }
+                })
+                .catch(err => console.log("Task refresh bypass:", err.message));
+        }
+
+        // 1. API'den görevleri her 30 saniyede bir çek
+        fetchTasksForNotifications();
+        setInterval(fetchTasksForNotifications, 30000);
+
+        // 2. Arayüz geri sayımını HER SANİYE (1000 ms) güncelle
+        setInterval(updateNotifications, 1000);
+    });
+    </script>
+    {% endif %}
+
     {% block scripts %}{% endblock %}
 </body>
 </html>
