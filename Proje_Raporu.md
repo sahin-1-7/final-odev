@@ -75,6 +75,22 @@ final ödev/
 └── .gitignore                  # Git Tarafından Takip Edilmeyecek Dosyalar (.env, venv vb.)
 ```
 
+### 🔄 Proje Ana İş Akışları (Main Flows)
+
+Uygulamanın veri güvenliğini, zaman çakışma kontrolünü ve yapay zeka entegrasyonunu yöneten ana iş akışı aşağıda görselleştirilmiştir:
+
+```mermaid
+flowchart TD
+    A[Kullanıcı: Görev Ekleme / Güncelleme Talebi] --> B{Saat Çakışma Denetleyici}
+    B -- Çakışma Var --> C[Arayüzde Kırmızı Neon Parıltı ve Toast Geri Sayım Uyarısı]
+    B -- Çakışma Yok --> D{SQL BOLA/IDOR Güvenlik Filtresi}
+    D -->|current_user.id Doğrulandı| E[Veritabanına Güvenli Kayıt]
+    E --> F[Yapay Zeka Planlayıcı Tetikleyici]
+    F --> G{Gemini API / JSON Şema Motoru}
+    G -->|Seçili Dil: TR veya EN| H[Bilingual Markdown AI Raporu Üretimi]
+    H --> I[AISuggestion Tablosuna Kayıt ve Arayüzde Gösterim]
+```
+
 ---
 
 ## 4. Veritabanı Tasarımı (ER Modeli)
