@@ -1,0 +1,18 @@
+{
+  "name": "Glide - Akilli Gorev ve Zaman Yonetimi",
+  "short_name": "Glide",
+  "description": "Yapay Zeka Destekli Akilli Gorev ve Zaman Yonetim Sistemi",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d0e14",
+  "theme_color": "#0d0e14",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/static/uploads/default_avatar.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
