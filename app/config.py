@@ -10,10 +10,15 @@ class Config:
     # Veritabanı
     BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
     db_path = os.path.join(BASE_DIR, "instance", "task_planner.db").replace('\\', '/')
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL', 
-        f'sqlite:///{db_path}'
-    )
+    
+    raw_db_url = os.environ.get('DATABASE_URL')
+    if raw_db_url:
+        if raw_db_url.startswith("postgres://"):
+            raw_db_url = raw_db_url.replace("postgres://", "postgresql://", 1)
+        SQLALCHEMY_DATABASE_URI = raw_db_url
+    else:
+        SQLALCHEMY_DATABASE_URI = f'sqlite:///{db_path}'
+        
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # E-posta Konfigürasyonu

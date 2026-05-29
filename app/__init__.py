@@ -45,8 +45,16 @@ def create_app(config_class=Config):
     def load_user(user_id):
         return User.query.get(int(user_id))
     
-    # Static uploads klasörünün varlığından emin ol
+    # Static uploads ve avatars klasörlerinin varlığından emin ol
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'avatars'), exist_ok=True)
+    
+    # Çeviri dosyalarını pybabel ile otomatik derle
+    try:
+        from babel.messages.frontend import CommandLineInterface
+        CommandLineInterface().run(['pybabel', 'compile', '-d', 'app/translations'])
+    except Exception as e:
+        app.logger.warning(f"Otomatik çeviri derleme adımı atlandı: {e}")
     
     # Blueprint'leri kaydet
     from app.blueprints.auth import auth_bp
