@@ -337,4 +337,121 @@ body {
 }
 
 
+/* ==========================================================================
+   📱 MOBİL UYUMLULUK VE DUYARLI TASARIM (MEDIA QUERIES)
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* Genel Arayüz İyileştirmeleri */
+    body {
+        padding: 0 10px;
+    }
+    
+    .container {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
 
+    /* Kart ve Cam Efektleri (Cam Kartlar Mobilde Daha Kompakt Olmalı) */
+    .card, .glass-card {
+        border-radius: 1rem;
+        padding: 1.25rem !important;
+    }
+
+    .card-body {
+        padding: 0.75rem 0 !important;
+    }
+
+    /* Başlık ve Metin Boyutları */
+    h1, .display-4 {
+        font-size: 2rem !important;
+    }
+
+    h3 {
+        font-size: 1.35rem !important;
+    }
+    
+    .display-1 {
+        font-size: 4rem !important;
+    }
+
+    /* Navigasyon Barı ve Dil Seçici */
+    .navbar {
+        padding: 0.5rem 0;
+    }
+    
+    .navbar-brand span {
+        font-size: 1.1rem;
+    }
+
+    /* Dil Seçici Dropdown Mobil Düzeltmesi */
+    .dropdown-menu {
+        width: 100%;
+        max-width: 280px;
+    }
+
+    /* Görev Kartları (Task List) Mobilde Daha Akıcı Olmalı */
+    .task-item {
+        padding: 0.85rem !important;
+        margin-bottom: 0.75rem;
+    }
+
+    .task-item .d-flex {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.75rem !important;
+    }
+
+    .task-item .btn-group, .task-item .d-flex.gap-2 {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    /* Yapay Zeka Sohbet Asistanı Mobil İyileştirmeleri */
+    .chat-container {
+        height: 65vh !important;
+    }
+
+    .chat-bubble {
+        max-width: 85% !important;
+        padding: 0.85rem 1rem !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Öneri Çipleri (Suggestion Chips) Mobilde Yatayda Kaydırılabilir Olmalı */
+    .suggestion-chips-container {
+        display: flex !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        gap: 0.5rem !important;
+        padding: 0.5rem 0 !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+    }
+
+    .suggestion-chips-container::-webkit-scrollbar {
+        display: none; /* Safari & Chrome */
+    }
+
+    .suggestion-chip {
+        flex: 0 0 auto !important;
+        font-size: 0.8rem !important;
+        padding: 0.4rem 0.85rem !important;
+    }
+
+    /* Mobil Giriş/Kayıt ve Profil Sayfası Düzeltmeleri */
+    .avatar-wrapper {
+        width: 100px;
+        height: 100px;
+    }
+    
+    /* Butonlar Mobilde Tam Genişlik Olmalı */
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn-group .btn {
+        width: auto;
+        margin-bottom: 0;
+    }
+}
