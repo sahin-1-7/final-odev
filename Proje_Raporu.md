@@ -205,3 +205,28 @@ Bu proje ile hem backend mimarisi (Flask Blueprints, ORM, Migrations) hem de fro
 1. **Google Takvim Entegrasyonu:** Görevlerin otomatik olarak Google Takvim'e senkronize edilmesi.
 2. **Dinamik Grafikler:** Tamamlanan ve bekleyen görevlerin istatistiksel grafikler (Chart.js) ile Dashboard üzerinde görselleştirilmesi.
 3. **Gerçek Zamanlı Bildirimler:** Görev saati yaklaşırken tarayıcı veya e-posta yoluyla anlık hatırlatıcı gönderilmesi.
+
+---
+
+## 7. Yapay Zeka (AI) ve Vibe Coding Değerlendirmesi
+
+Hocamızın teknik doğruluk ve rapor kriterleri doğrultusunda, yapay zeka kodlama asistanı (Antigravity/Gemini) ile yürüttüğümüz "vibe coding" geliştirme sürecinin detaylı değerlendirmesi aşağıda sunulmuştur:
+
+### 1. Vibe Coding Deneyimimiz
+* **Ne İşe Yaradı:** Fikir aşamasından canlıya alma (deployment) aşamasına kadar olan geliştirme döngüsünü inanılmaz ölçüde hızlandırdı. Karmaşık zaman çakışma algoritmalarının matematiksel modellemesinde, 6 farklı dilde Flask-Babel entegrasyonunda ve Docker altyapısının sıfırdan kurulmasında AI asistanı güçlü bir pair-programming ortağı oldu.
+* **Nerede Zorlandık:** Çoklu dil geçişlerindeki request context önbellek (caching) senkronizasyon hatalarında ve SQLite ile PostgreSQL arasındaki şema geçişlerindeki tip uyumsuzluklarında AI'ın ürettiği ilk kodlarda tıkanmalar yaşandı. Bu durumlar bizim sıkı teknik müdahalelerimiz ve plan revizyonlarımızla çözüldü.
+
+### 2. Antigravity IDE / Asistanı'nda En Faydalı Bulduğumuz 2 Özellik
+1. **Plan ve Araştırma Modu (Planning Mode):** Kod yazımına geçmeden önce detaylı bir teknik mimari şablonu (implementation plan) çıkartıp, dairesel bağımlılık veya siber güvenlik zafiyeti oluşturabilecek riskleri henüz planlama aşamasındayken görerek revize etmemizi sağladı.
+2. **Konteyner ve Çalışma Alanı Entegrasyonu (Workspace Integration):** Ajanın yerel terminal komutlarını çalıştırarak pybabel dil derlemelerini, veritabanı şema göçlerini ve Docker testlerini izole bağlamda otomatik doğrulaması geliştirme hızını maksimize etti.
+
+### 3. Ajanın Ürettiği ve Bizim Yakalayıp Düzelttiğimiz En Kritik 3 Hata
+1. **SQLAlchemy 1.x vs 2.x Mimarisi (Oturum 1):** Ajan ilk başta eski stil `db.Column` kullanmaya meyilliydi. Sıkı bir revizyonla SQLAlchemy 2.x standardı olan `Mapped` ve `mapped_column` kullanımını zorunlu kıldık.
+2. **SQL IDOR / BOLA Siber Güvenlik Zafiyeti (Oturum 3):** Ajan, arama sorgusunda kullanıcı doğrulaması yapmadan doğrudan filtre uyguluyordu. Arama sorgularına kesin olarak `current_user.id` sarmallamasını ekleterek siber veri sızıntısı açığını kapattık.
+3. **Şifre Sıfırlama Token Güvenliği (Oturum 7):** Ajan ilk planında şifre sıfırlama token'larının geçerliliğini süresiz yapıyordu. Kriptografik imza içerisine şifre hash'ini dahil ederek, şifre değiştiğinde token'ın otomatik geçersiz kalmasını sağladık.
+
+### 4. Zaman ve Efor Tahmini (AI Olmadan Geliştirme Süresi)
+* Eğer bu projeyi sıfırdan, yapay zeka asistanı olmaksızın klasik yöntemlerle tek başımıza geliştirmek durumunda kalsaydık; özellikle Pillow ile EXIF temizliği gibi siber güvenlik sıkılaştırmaları, 6 dilli Babel yerelleştirmeleri, state-machine tabanlı 0sn bildirim motoru ve Dockerize altyapısının araştırılıp entegre edilmesi tahminen **3 ila 4 hafta** sürerdi. Yapay zeka ile bu süreç **4 gün** gibi kısa bir sürede tamamlanmıştır.
+
+### 5. Projenin Sürdürülmesi Durumunda Bir Sonraki Adım
+* Projeyi sürdürmemiz halinde atılacak en kritik sonraki adım; asenkron yapay zeka analiz raporlarının üretimi sürecini arka planda kuyruklayan **Celery & Redis** mimarisini entegre etmek ve kullanıcıların planlanan görevlerini otomatik olarak **Google Calendar API** ile senkronize etmek olacaktır.
