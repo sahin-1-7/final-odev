@@ -7,10 +7,8 @@ databases:
 services:
   - type: web
     name: glide-task-planner
-    env: python
+    env: docker
     plan: free
-    buildCommand: pip install -r requirements.txt && pybabel compile -d app/translations
-    startCommand: gunicorn run:app
     envVars:
       - key: DATABASE_URL
         fromDatabase:
