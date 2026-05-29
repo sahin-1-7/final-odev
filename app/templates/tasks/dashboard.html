@@ -82,157 +82,265 @@
             <!-- AI Analiz Kartı -->
             <div class="card border-0 ai-glow-card">
                 <div class="card-body p-4 text-center">
-                    <i class="bi bi-cpu-fill text-info fs-1 mb-2 d-inline-block"></i>
-                    <h5 class="fw-bold text-white mb-2">{{ _('Yapay Zeka Analizi') }}</h5>
-                    <p class="text-secondary small mb-4">{{ _('Görev çakışmalarını tespit edin, önceliklerinize göre optimize edilmiş programınızı yapay zeka ile hemen oluşturun.') }}</p>
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <div class="avatar-wrapper m-0" style="width: 48px; height: 48px; background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(6, 182, 212, 0.25);">
+                            <i class="bi bi-cpu-fill text-info fs-3 animate-pulse"></i>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">{{ _('Yapay Zeka Planlayıcı') }}</h5>
+                    {% if latest_suggestion %}
+                        <span class="badge bg-success-subtle text-success fs-8 rounded px-2.5 py-1 mb-3"><i class="bi bi-shield-check me-1"></i>{{ _('Plan Optimize Edildi') }}</span>
+                        <p class="text-secondary small mb-3">
+                            {{ _('Son Analiz:') }} {{ latest_suggestion.created_at.strftime('%d.%m.%Y %H:%M') }}
+                        </p>
+                    {% else %}
+                        <span class="badge bg-info-subtle text-info fs-8 rounded px-2.5 py-1 mb-3"><i class="bi bi-lightning-fill me-1"></i>{{ _('Optimizasyon Hazır') }}</span>
+                        <p class="text-secondary small mb-3">{{ _('Görev çakışmalarını tespit edin, önceliklerinize göre optimize edilmiş programınızı yapay zeka ile hemen oluşturun.') }}</p>
+                    {% endif %}
                     <form method="POST" action="{{ url_for('tasks.ai_optimize') }}" id="ai-optimize-form">
-                        <button type="submit" class="btn btn-outline-info w-100 py-2" id="ai-optimize-btn">
-                            <i class="bi bi-magic me-1" id="ai-optimize-icon"></i>
+                        <button type="submit" class="btn btn-outline-info w-100 py-2.5 rounded-pill fs-7 d-flex align-items-center justify-content-center gap-1.5" id="ai-optimize-btn">
+                            <i class="bi bi-magic" id="ai-optimize-icon"></i>
                             <span id="ai-optimize-text">{{ _('Planı Optimize Et') }}</span>
                         </button>
                     </form>
+                    {% if latest_suggestion %}
+                        <a href="{{ url_for('tasks.ai_planner') }}" class="btn btn-sm btn-outline-light w-100 mt-2 py-2 rounded-pill fs-8"><i class="bi bi-fullscreen me-1"></i>{{ _('Tam Sayfa Rapora Git') }}</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Sağ Bölüm: Görev Listesi ve Filtreleme -->
+        <!-- Sağ Bölüm: Görev Listesi ve Yapay Zeka Entegre Konsol -->
         <div class="col-lg-8" id="task-list-container">
             <div class="card border-0 h-100">
-                <div class="card-header border-0 py-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
-                    <!-- Filtre Seçenekleri -->
-                    <div class="d-flex flex-wrap gap-2">
-                        <a href="{{ url_for('tasks.dashboard', period='all', priority=priority_filter, q=search_query) }}" class="btn btn-sm {% if period_filter == 'all' %}btn-primary{% else %}btn-outline-light{% endif %} rounded-pill px-3">{{ _('Tümü') }}</a>
-                        <a href="{{ url_for('tasks.dashboard', period='daily', priority=priority_filter, q=search_query) }}" class="btn btn-sm {% if period_filter == 'daily' %}btn-primary{% else %}btn-outline-light{% endif %} rounded-pill px-3">{{ _('Günlük') }}</a>
-                        <a href="{{ url_for('tasks.dashboard', period='weekly', priority=priority_filter, q=search_query) }}" class="btn btn-sm {% if period_filter == 'weekly' %}btn-primary{% else %}btn-outline-light{% endif %} rounded-pill px-3">{{ _('Haftalık') }}</a>
-                        <a href="{{ url_for('tasks.dashboard', period='monthly', priority=priority_filter, q=search_query) }}" class="btn btn-sm {% if period_filter == 'monthly' %}btn-primary{% else %}btn-outline-light{% endif %} rounded-pill px-3">{{ _('Aylık') }}</a>
-                    </div>
+                <!-- Üst Tab Başlığı & Filtreler -->
+                <div class="card-header border-0 py-3.5 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <ul class="nav nav-pills" id="dashboardTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active rounded-pill px-3.5 py-2 fs-7 d-flex align-items-center gap-1.5" id="timeline-tab" data-bs-toggle="pill" data-bs-target="#timeline-panel" type="button" role="tab" aria-controls="timeline-panel" aria-selected="true">
+                                <i class="bi bi-clock-history"></i> {{ _('Zaman Çizelgesi') }}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill px-3.5 py-2 fs-7 d-flex align-items-center gap-1.5" id="ai-priority-tab" data-bs-toggle="pill" data-bs-target="#ai-priority-panel" type="button" role="tab" aria-controls="ai-priority-panel" aria-selected="false">
+                                <i class="bi bi-sort-down-alt text-info animate-pulse"></i> {{ _('AI Akıllı Öncelik') }}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill px-3.5 py-2 fs-7 d-flex align-items-center gap-1.5" id="ai-report-tab" data-bs-toggle="pill" data-bs-target="#ai-report-panel" type="button" role="tab" aria-controls="ai-report-panel" aria-selected="false">
+                                <i class="bi bi-journal-text text-warning"></i> {{ _('AI Analiz Raporu') }}
+                            </button>
+                        </li>
+                    </ul>
                     
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="text-secondary fs-7 fw-semibold">{{ _('Öncelik:') }}</span>
-                        <select class="form-select form-select-sm border-secondary rounded-pill bg-dark text-white px-3" style="width: auto;" onchange="location = this.value;">
-                            <option value="{{ url_for('tasks.dashboard', period=period_filter, priority='all', q=search_query) }}" {% if priority_filter == 'all' %}selected{% endif %}>{{ _('Tümü') }}</option>
-                            <option value="{{ url_for('tasks.dashboard', period=period_filter, priority='High', q=search_query) }}" {% if priority_filter == 'High' %}selected{% endif %}>{{ _('Yüksek') }}</option>
-                            <option value="{{ url_for('tasks.dashboard', period=period_filter, priority='Medium', q=search_query) }}" {% if priority_filter == 'Medium' %}selected{% endif %}>{{ _('Orta') }}</option>
-                            <option value="{{ url_for('tasks.dashboard', period=period_filter, priority='Low', q=search_query) }}" {% if priority_filter == 'Low' %}selected{% endif %}>{{ _('Düşük') }}</option>
-                        </select>
+                    <div class="d-flex align-items-center gap-3" id="timeline-filters">
+                        <!-- Filtre Seçenekleri -->
+                        <div class="d-flex flex-wrap gap-1.5">
+                            <a href="{{ url_for('tasks.dashboard', period='all', priority=priority_filter, q=search_query) }}" class="btn btn-sm {% if period_filter == 'all' %}btn-primary{% else %}btn-outline-light{% endif %} rounded-pill px-2.5 fs-8">{{ _('Tümü') }}</a>
+                            <a href="{{ url_for('tasks.dashboard', period='daily', priority=priority_filter, q=search_query) }}" class="btn btn-sm {% if period_filter == 'daily' %}btn-primary{% else %}btn-outline-light{% endif %} rounded-pill px-2.5 fs-8">{{ _('Günlük') }}</a>
+                            <a href="{{ url_for('tasks.dashboard', period='weekly', priority=priority_filter, q=search_query) }}" class="btn btn-sm {% if period_filter == 'weekly' %}btn-primary{% else %}btn-outline-light{% endif %} rounded-pill px-2.5 fs-8">{{ _('Haftalık') }}</a>
+                            <a href="{{ url_for('tasks.dashboard', period='monthly', priority=priority_filter, q=search_query) }}" class="btn btn-sm {% if period_filter == 'monthly' %}btn-primary{% else %}btn-outline-light{% endif %} rounded-pill px-2.5 fs-8">{{ _('Aylık') }}</a>
+                        </div>
+                        
+                        <div class="d-flex align-items-center gap-1.5">
+                            <span class="text-secondary fs-8 fw-semibold">{{ _('Öncelik:') }}</span>
+                            <select class="form-select form-select-sm border-secondary rounded-pill bg-dark text-white px-2.5 fs-8" style="width: auto;" onchange="location = this.value;">
+                                <option value="{{ url_for('tasks.dashboard', period=period_filter, priority='all', q=search_query) }}" {% if priority_filter == 'all' %}selected{% endif %}>{{ _('Tümü') }}</option>
+                                <option value="{{ url_for('tasks.dashboard', period=period_filter, priority='High', q=search_query) }}" {% if priority_filter == 'High' %}selected{% endif %}>{{ _('Yüksek') }}</option>
+                                <option value="{{ url_for('tasks.dashboard', period=period_filter, priority='Medium', q=search_query) }}" {% if priority_filter == 'Medium' %}selected{% endif %}>{{ _('Orta') }}</option>
+                                <option value="{{ url_for('tasks.dashboard', period=period_filter, priority='Low', q=search_query) }}" {% if priority_filter == 'Low' %}selected{% endif %}>{{ _('Düşük') }}</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
                 <div class="card-body p-4">
-                    {% if search_query %}
-                        <div class="alert alert-info border-0 bg-info-subtle text-info d-flex align-items-center justify-content-between p-3 rounded-3 mb-4">
-                            <div>
-                                <i class="bi bi-info-circle-fill me-2"></i>
-                                <span>{{ _('"%(query)s" için arama sonuçları', query=search_query) }}</span>
-                            </div>
-                            <a href="{{ url_for('tasks.dashboard', period=period_filter, priority=priority_filter) }}" class="btn-close text-info shadow-none" aria-label="Kapat"></a>
-                        </div>
-                    {% endif %}
-                    
-                    {% if tasks %}
-                        <div class="task-list">
-                            {% for task in tasks %}
-                                <div class="task-item priority-{{ task.priority }} {% if task.is_completed %}completed{% elif task.is_failed %}failed-task{% endif %} d-flex align-items-center justify-content-between gap-3">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <!-- Tamamlama Butonu -->
-                                        <form method="POST" action="{{ url_for('tasks.complete_task', task_id=task.id) }}" class="m-0">
-                                            <button type="submit" class="btn btn-link p-0 text-decoration-none shadow-none">
-                                                {% if task.is_completed %}
-                                                    <i class="bi bi-check-circle-fill text-success fs-4"></i>
-                                                {% elif task.is_failed %}
-                                                    <i class="bi bi-x-circle text-danger fs-4" title="{{ _('Yapılamadı') }}"></i>
-                                                {% else %}
-                                                    <i class="bi bi-circle text-secondary fs-4"></i>
-                                                {% endif %}
-                                            </button>
-                                        </form>
-                                        
-                                        <div>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <h6 class="task-title fw-bold m-0 text-white">{{ task.title }}</h6>
-                                                <span class="badge bg-secondary-subtle text-secondary fs-8 rounded px-2">
-                                                    {% set lang = session.get('lang', 'tr') %}
-                                                    {% if task.period == 'daily' %}
-                                                        {% if lang == 'en' %}DAILY
-                                                        {% elif lang == 'fr' %}QUOTIDIEN
-                                                        {% elif lang == 'es' %}DIARIO
-                                                        {% elif lang == 'hi' %}दैनिक
-                                                        {% elif lang == 'ar' %}يومي
-                                                        {% else %}GÜNLÜK{% endif %}
-                                                    {% elif task.period == 'weekly' %}
-                                                        {% if lang == 'en' %}WEEKLY
-                                                        {% elif lang == 'fr' %}HEBDOMADAIRE
-                                                        {% elif lang == 'es' %}SEMANAL
-                                                        {% elif lang == 'hi' %}साप्ताहिक
-                                                        {% elif lang == 'ar' %}أسبوعي
-                                                        {% else %}HAFTALIK{% endif %}
-                                                    {% elif task.period == 'monthly' %}
-                                                        {% if lang == 'en' %}MONTHLY
-                                                        {% elif lang == 'fr' %}MENSUEL
-                                                        {% elif lang == 'es' %}MENSUAL
-                                                        {% elif lang == 'hi' %}मासिक
-                                                        {% elif lang == 'ar' %}شهري
-                                                        {% else %}AYLIK{% endif %}
-                                                    {% else %}
-                                                        {{ task.period | upper }}
+                    <div class="tab-content" id="dashboardTabContent">
+                        
+                        <!-- ================= PANEL 1: ZAMAN ÇİZELGESİ ================= -->
+                        <div class="tab-pane fade show active" id="timeline-panel" role="tabpanel" aria-labelledby="timeline-tab">
+                            {% if search_query %}
+                                <div class="alert alert-info border-0 bg-info-subtle text-info d-flex align-items-center justify-content-between p-3 rounded-3 mb-4">
+                                    <div>
+                                        <i class="bi bi-info-circle-fill me-2"></i>
+                                        <span>{{ _('"%(query)s" için arama sonuçları', query=search_query) }}</span>
+                                    </div>
+                                    <a href="{{ url_for('tasks.dashboard', period=period_filter, priority=priority_filter) }}" class="btn-close text-info shadow-none" aria-label="Kapat"></a>
+                                </div>
+                            {% endif %}
+                            
+                            {% if tasks %}
+                                <div class="task-list">
+                                    {% for task in tasks %}
+                                        <div class="task-item priority-{{ task.priority }} {% if task.is_completed %}completed{% elif task.is_failed %}failed-task{% endif %} d-flex align-items-center justify-content-between gap-3">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <!-- Tamamlama Butonu -->
+                                                <form method="POST" action="{{ url_for('tasks.complete_task', task_id=task.id) }}" class="m-0">
+                                                    <button type="submit" class="btn btn-link p-0 text-decoration-none shadow-none">
+                                                        {% if task.is_completed %}
+                                                            <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                                                        {% elif task.is_failed %}
+                                                            <i class="bi bi-x-circle text-danger fs-4" title="{{ _('Yapılamadı') }}"></i>
+                                                        {% else %}
+                                                            <i class="bi bi-circle text-secondary fs-4"></i>
+                                                        {% endif %}
+                                                    </button>
+                                                </form>
+                                                
+                                                <div>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <h6 class="task-title fw-bold m-0 text-white">{{ task.title }}</h6>
+                                                        <span class="badge bg-secondary-subtle text-secondary fs-8 rounded px-2">
+                                                            {% set lang = session.get('lang', 'tr') %}
+                                                            {% if task.period == 'daily' %}
+                                                                {% if lang == 'en' %}DAILY
+                                                                {% elif lang == 'fr' %}QUOTIDIEN
+                                                                {% elif lang == 'es' %}DIARIO
+                                                                {% elif lang == 'hi' %}दैनिक
+                                                                {% elif lang == 'ar' %}يومي
+                                                                {% else %}GÜNLÜK{% endif %}
+                                                            {% elif task.period == 'weekly' %}
+                                                                {% if lang == 'en' %}WEEKLY
+                                                                {% elif lang == 'fr' %}HEBDOMADAIRE
+                                                                {% elif lang == 'es' %}SEMANAL
+                                                                {% elif lang == 'hi' %}साप्ताहिक
+                                                                {% elif lang == 'ar' %}أسبوعي
+                                                                {% else %}HAFTALIK{% endif %}
+                                                            {% elif task.period == 'monthly' %}
+                                                                {% if lang == 'en' %}MONTHLY
+                                                                {% elif lang == 'fr' %}MENSUEL
+                                                                {% elif lang == 'es' %}MENSUAL
+                                                                {% elif lang == 'hi' %}मासिक
+                                                                {% elif lang == 'ar' %}شهري
+                                                                {% else %}AYLIK{% endif %}
+                                                            {% else %}
+                                                                {{ task.period | upper }}
+                                                            {% endif %}
+                                                        </span>
+                                                    </div>
+                                                    {% if task.description %}
+                                                        <p class="text-secondary small m-0 mt-1">{{ task.description }}</p>
                                                     {% endif %}
-                                                </span>
+                                                    <div class="d-flex align-items-center gap-2.5 mt-1.5 text-secondary fs-7">
+                                                        <i class="bi bi-clock"></i>
+                                                        <span>{{ task.start_time }} - {{ task.end_time }}</span>
+                                                        <span class="mx-1">&bull;</span>
+                                                        {% if task.is_completed %}
+                                                            <span class="badge bg-success-subtle text-success fs-8 rounded"><i class="bi bi-check-circle-fill me-1"></i>{{ _('Tamamlandı') }}</span>
+                                                        {% elif task.is_failed %}
+                                                            <span class="badge bg-danger-subtle text-danger fs-8 rounded"><i class="bi bi-x-circle-fill me-1"></i>{{ _('Yapılamadı') }}</span>
+                                                        {% else %}
+                                                            <span class="badge bg-warning-subtle text-warning fs-8 rounded"><i class="bi bi-hourglass-split me-1"></i>{{ _('Bekliyor') }}</span>
+                                                        {% endif %}
+                                                        <span class="mx-1">&bull;</span>
+                                                        {% if task.priority == 'High' %}
+                                                            <span class="text-danger fw-semibold"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ _('Yüksek Öncelik') }}</span>
+                                                        {% elif task.priority == 'Medium' %}
+                                                            <span class="text-warning fw-semibold"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ _('Orta Öncelik') }}</span>
+                                                        {% else %}
+                                                            <span class="text-success fw-semibold"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ _('Düşük Öncelik') }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
                                             </div>
-                                            {% if task.description %}
-                                                <p class="text-secondary small m-0 mt-1">{{ task.description }}</p>
-                                            {% endif %}
-                                            <div class="d-flex align-items-center gap-2.5 mt-1.5 text-secondary fs-7">
+                                            
+                                            <div class="d-flex align-items-center gap-2">
+                                                <!-- Düzenle Butonu -->
+                                                <button type="button" class="btn btn-sm btn-outline-light border-0 rounded-circle p-1.5 text-info" data-bs-toggle="modal" data-bs-target="#editTaskModal{{ task.id }}" title="{{ _('Görevi Düzenle') }}">
+                                                    <i class="bi bi-pencil-square fs-5"></i>
+                                                </button>
+                                                
+                                                <!-- Silme Butonu -->
+                                                <form method="POST" action="{{ url_for('tasks.delete_task', task_id=task.id) }}" class="m-0">
+                                                    <button type="submit" class="btn btn-sm btn-outline-light border-0 text-danger rounded-circle p-1.5" onclick="return confirm('{{ _('Bu görevi silmek istediğinize emin misiniz?') }}')" title="{{ _('Görevi Sil') }}">
+                                                        <i class="bi bi-trash3 fs-5"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <!-- Boş Liste Uyarısı -->
+                                <div class="text-center py-5">
+                                    <i class="bi bi-inbox text-secondary fs-1 d-block mb-3"></i>
+                                    {% if search_query %}
+                                        <h5 class="fw-semibold text-white">{{ _('Aradığınız kriterlere uygun görev bulunamadı') }}</h5>
+                                        <p class="text-secondary small">{{ _('Lütfen arama teriminizi değiştirip tekrar deneyin.') }}</p>
+                                    {% else %}
+                                        <h5 class="fw-semibold text-white">{{ _('Burada henüz bir görev yok') }}</h5>
+                                        <p class="text-secondary small">{{ _('Yeni planlar yapmak için sol paneldeki görev formunu kullanabilirsiniz.') }}</p>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- ================= PANEL 2: AI AKILLI ÖNCELİK ================= -->
+                        <div class="tab-pane fade" id="ai-priority-panel" role="tabpanel" aria-labelledby="ai-priority-tab">
+                            <p class="text-secondary small mb-4 fs-8"><i class="bi bi-info-circle me-1"></i>{{ _('Görevleriniz, yapay zekanın önerdiği şekilde periyot, öncelik derecesi ve saat baz alınarak verimlilik odaklı sıralanmıştır.') }}</p>
+                            
+                            {% if sorted_tasks %}
+                                <div class="ai-task-sequence">
+                                    {% for task in sorted_tasks %}
+                                        <div class="task-item priority-{{ task.priority }} {% if task.is_completed %}completed{% endif %} p-3 mb-2.5">
+                                            <div class="d-flex justify-content-between align-items-center gap-2">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="fs-7">
+                                                        {% if task.is_completed %}
+                                                            ✅
+                                                        {% else %}
+                                                            ⏳
+                                                        {% endif %}
+                                                    </span>
+                                                    <span class="fw-bold text-white fs-7">{{ task.title }}</span>
+                                                </div>
+                                                <span class="badge bg-secondary-subtle text-secondary fs-8 px-2.5 py-1 rounded-pill">{{ task.period | upper }}</span>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2 mt-2 text-secondary fs-8">
                                                 <i class="bi bi-clock"></i>
                                                 <span>{{ task.start_time }} - {{ task.end_time }}</span>
                                                 <span class="mx-1">&bull;</span>
-                                                {% if task.is_completed %}
-                                                    <span class="badge bg-success-subtle text-success fs-8 rounded"><i class="bi bi-check-circle-fill me-1"></i>{{ _('Tamamlandı') }}</span>
-                                                {% elif task.is_failed %}
-                                                    <span class="badge bg-danger-subtle text-danger fs-8 rounded"><i class="bi bi-x-circle-fill me-1"></i>{{ _('Yapılamadı') }}</span>
-                                                {% else %}
-                                                    <span class="badge bg-warning-subtle text-warning fs-8 rounded"><i class="bi bi-hourglass-split me-1"></i>{{ _('Bekliyor') }}</span>
-                                                {% endif %}
-                                                <span class="mx-1">&bull;</span>
                                                 {% if task.priority == 'High' %}
-                                                    <span class="text-danger fw-semibold"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ _('Yüksek Öncelik') }}</span>
+                                                    <span class="text-danger fw-semibold">{{ _('Yüksek Öncelik') }}</span>
                                                 {% elif task.priority == 'Medium' %}
-                                                    <span class="text-warning fw-semibold"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ _('Orta Öncelik') }}</span>
+                                                    <span class="text-warning fw-semibold">{{ _('Orta Öncelik') }}</span>
                                                 {% else %}
-                                                    <span class="text-success fw-semibold"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ _('Düşük Öncelik') }}</span>
+                                                    <span class="text-success fw-semibold">{{ _('Düşük Öncelik') }}</span>
                                                 {% endif %}
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    <div class="d-flex align-items-center gap-2">
-                                        <!-- Düzenle Butonu (Modalı Tetikler) -->
-                                        <button type="button" class="btn btn-sm btn-outline-light border-0 rounded-circle p-1.5 text-info" data-bs-toggle="modal" data-bs-target="#editTaskModal{{ task.id }}" title="{{ _('Görevi Düzenle') }}">
-                                            <i class="bi bi-pencil-square fs-5"></i>
-                                        </button>
-                                        
-                                        <!-- Silme Butonu -->
-                                        <form method="POST" action="{{ url_for('tasks.delete_task', task_id=task.id) }}" class="m-0">
-                                            <button type="submit" class="btn btn-sm btn-outline-light border-0 text-danger rounded-circle p-1.5" onclick="return confirm('{{ _('Bu görevi silmek istediğinize emin misiniz?') }}')" title="{{ _('Görevi Sil') }}">
-                                                <i class="bi bi-trash3 fs-5"></i>
-                                            </button>
-                                        </form>
-                                    </div>
+                                    {% endfor %}
                                 </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <!-- Boş Liste Uyarısı -->
-                        <div class="text-center py-5">
-                            <i class="bi bi-inbox text-secondary fs-1 d-block mb-3"></i>
-                            {% if search_query %}
-                                <h5 class="fw-semibold text-white">{{ _('Aradığınız kriterlere uygun görev bulunamadı') }}</h5>
-                                <p class="text-secondary small">{{ _('Lütfen arama teriminizi değiştirip tekrar deneyin.') }}</p>
                             {% else %}
-                                <h5 class="fw-semibold text-white">{{ _('Burada henüz bir görev yok') }}</h5>
-                                <p class="text-secondary small">{{ _('Yeni planlar yapmak için sol paneldeki görev formunu kullanabilirsiniz.') }}</p>
+                                <div class="text-center py-5">
+                                    <i class="bi bi-inbox text-secondary fs-1 d-block mb-3"></i>
+                                    <h5 class="fw-semibold text-white">{{ _('Görev Tanımlanmamış') }}</h5>
+                                    <p class="text-secondary small">{{ _('Öncelik sıralaması görebilmek için önce görevlerinizi ekleyin.') }}</p>
+                                </div>
                             {% endif %}
                         </div>
-                    {% endif %}
+
+                        <!-- ================= PANEL 3: AI ANALİZ RAPORU ================= -->
+                        <div class="tab-pane fade" id="ai-report-panel" role="tabpanel" aria-labelledby="ai-report-tab">
+                            {% if latest_suggestion %}
+                                <!-- Gizli ham metin -->
+                                <textarea id="dashboard-suggestion-raw" class="d-none">{{ latest_suggestion.localized_text }}</textarea>
+                                <!-- Biçimlendirilmiş HTML Çıktısı -->
+                                <div id="dashboard-suggestion-rendered" class="suggestion-content">
+                                    <!-- JS ile render edilecek -->
+                                </div>
+                                <div class="text-secondary fs-8 mt-4 pt-3 border-top border-secondary border-opacity-50">
+                                    <i class="bi bi-clock me-1"></i>{{ _('Oluşturulma Zamanı:') }} {{ latest_suggestion.created_at.strftime('%d.%m.%Y %H:%M') }}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="bi bi-cpu text-secondary fs-1 d-block mb-3 animate-pulse"></i>
+                                    <h5 class="fw-semibold text-white">{{ _('Henüz Bir Rapor Yok') }}</h5>
+                                    <p class="text-secondary small">{{ _('Zaman planınızı optimize etmek ve çakışma raporu almak için lütfen soldaki "Planı Optimize Et" butonuna basın.') }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -309,6 +417,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let debounceTimer;
     
+    // İlk Yüklemede Tab Değişimlerini ve Rapor Render Adımını Kur
+    initTabVisibility();
+    renderDashboardSuggestion();
+    
     if (searchInput) {
         searchInput.addEventListener('input', function() {
             // Arama ikonunu yükleniyor spinner'ı ile değiştir
@@ -357,8 +469,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     currentContainer.innerHTML = newContainer.innerHTML;
                 }
                 
-                // Adres çubuğundaki URL'yi güncelle (kullanıcı sayfayı yenilerse kaldığı yerden devam etsin)
+                // Adres çubuğundaki URL'yi güncelle
                 window.history.replaceState({ path: url.toString() }, '', url.toString());
+                
+                // Container güncellendiği için Tablar ve Rapor Render İşlemini Yeniden Başlat
+                initTabVisibility();
+                renderDashboardSuggestion();
             })
             .catch(error => console.error('Arama hatası:', error))
             .finally(() => {
@@ -368,6 +484,67 @@ document.addEventListener('DOMContentLoaded', function() {
                     searchSpinner.classList.add('d-none');
                 }
             });
+    }
+
+    // Sekme filtrelerinin gösterilip gizlenmesini kontrol eden fonksiyon
+    function initTabVisibility() {
+        const tabElList = [].slice.call(document.querySelectorAll('#dashboardTabs button'));
+        tabElList.forEach(function (tabEl) {
+            tabEl.addEventListener('shown.bs.tab', function (event) {
+                const filtersDiv = document.getElementById('timeline-filters');
+                if (filtersDiv) {
+                    if (event.target.id === 'timeline-tab') {
+                        filtersDiv.classList.remove('d-none');
+                        filtersDiv.classList.add('d-flex');
+                    } else {
+                        filtersDiv.classList.add('d-none');
+                        filtersDiv.classList.remove('d-flex');
+                    }
+                }
+            });
+        });
+    }
+
+    // Markdown biçimlendirici yardımıyla AI suggestion render fonksiyonu
+    function renderDashboardSuggestion() {
+        const rawTextEl = document.getElementById('dashboard-suggestion-raw');
+        const renderEl = document.getElementById('dashboard-suggestion-rendered');
+        if (rawTextEl && renderEl) {
+            const rawText = rawTextEl.value;
+            let lines = rawText.split('\n');
+            let htmlOutput = '';
+            let inList = false;
+            
+            lines.forEach(line => {
+                let trimmed = line.trim();
+                
+                if (trimmed.startsWith('###')) {
+                    if (inList) { htmlOutput += '</ul>'; inList = false; }
+                    const title = trimmed.replace(/^###\s+/, '');
+                    htmlOutput += `<h5 class="fw-bold text-white mt-4 mb-3 pb-2 border-bottom border-secondary border-opacity-50 d-flex align-items-center gap-2"><i class="bi bi-stars text-info animate-pulse"></i> ${title}</h5>`;
+                }
+                else if (trimmed.startsWith('-') || trimmed.startsWith('*')) {
+                    if (!inList) { htmlOutput += '<ul class="list-unstyled ps-0">'; inList = true; }
+                    let itemText = trimmed.replace(/^[-*]\s+/, '');
+                    itemText = parseInlineMarkdown(itemText);
+                    htmlOutput += `<li class="d-flex align-items-start gap-2 mb-2.5 text-secondary fs-7"><i class="bi bi-arrow-right-short text-info fs-5 lh-1"></i> <div>${itemText}</div></li>`;
+                }
+                else if (trimmed.length > 0) {
+                    if (inList) { htmlOutput += '</ul>'; inList = false; }
+                    let paraText = parseInlineMarkdown(trimmed);
+                    htmlOutput += `<p class="text-secondary lh-lg mb-3 fs-7">${paraText}</p>`;
+                }
+            });
+            
+            if (inList) { htmlOutput += '</ul>'; }
+            renderEl.innerHTML = htmlOutput;
+        }
+    }
+    
+    function parseInlineMarkdown(text) {
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white fw-bold">$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em class="text-light">$1</em>');
     }
 
     // Görev Düzenleme Formlarını Asenkron Gönder (AJAX)
@@ -435,6 +612,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+    
     // AI Optimizasyon Butonu Yükleniyor Durumu Kontrolü
     const aiForm = document.getElementById('ai-optimize-form');
     if (aiForm) {

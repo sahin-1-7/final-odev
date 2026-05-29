@@ -35,12 +35,24 @@ def dashboard():
     # Görevleri başlangıç saatine göre sıralayarak al
     tasks = query.order_by(Task.start_time).all()
     
+    # AI Akıllı Sıralaması için kullanıcının tüm görevlerini çek ve periyot, priority_order ve saate göre sırala
+    all_user_tasks = Task.query.filter_by(user_id=current_user.id).all()
+    sorted_tasks = sorted(
+        all_user_tasks, 
+        key=lambda t: (
+            t.period, 
+            t.priority_order or 9999, 
+            parse_time_to_minutes(t.start_time)
+        )
+    )
+    
     # En son AI planlama önerisini getir
     latest_suggestion = AISuggestion.query.filter_by(user_id=current_user.id).order_by(AISuggestion.created_at.desc()).first()
     
     return render_template(
         'tasks/dashboard.html', 
         tasks=tasks, 
+        sorted_tasks=sorted_tasks,
         period_filter=period_filter, 
         priority_filter=priority_filter, 
         search_query=search_query,
