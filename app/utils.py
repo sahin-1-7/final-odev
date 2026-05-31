@@ -55,6 +55,21 @@ Giriş bilgileriniz güvendedir.
 '''
     msg.html = render_template('auth/reset_email.html', user=user, reset_url=reset_url)
     
+    # Geliştirici Posta Kutusu İçin Veritabanına Kaydet
+    try:
+        from app.models import DeveloperEmail
+        dev_email = DeveloperEmail(
+            sender=current_app.config.get('MAIL_DEFAULT_SENDER') or 'noreply@glide.com',
+            recipient=user.email,
+            subject='Glide - Şifre Sıfırlama Talebi',
+            body=msg.body,
+            html=msg.html
+        )
+        db.session.add(dev_email)
+        db.session.commit()
+    except Exception as ex:
+        print(f"\n[GELİŞTİRİCİ POSTA KUTUSU HATA] Kaydedilemedi: {ex}")
+    
     try:
         mail.send(msg)
     except Exception as e:

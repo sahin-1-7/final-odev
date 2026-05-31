@@ -26,6 +26,8 @@ def profile():
         username = request.form.get('username', '').strip()
         email = request.form.get('email', '').strip()
         avatar_file = request.files.get('avatar')
+        new_password = request.form.get('new_password', '').strip()
+        confirm_password = request.form.get('confirm_password', '').strip()
         
         if not username or not email:
             flash('Kullanıcı adı ve e-posta alanları zorunludur.', 'danger')
@@ -43,6 +45,19 @@ def profile():
         # Profil bilgilerini güncelle
         current_user.username = username
         current_user.email = email
+        
+        # Şifre Değiştirme Mantığı
+        if new_password:
+            if len(new_password) < 6:
+                flash('Yeni şifre en az 6 karakter olmalıdır.', 'danger')
+                return redirect(url_for('main.profile'))
+            if new_password != confirm_password:
+                flash('Girdiğiniz şifreler birbiriyle uyuşmuyor.', 'danger')
+                return redirect(url_for('main.profile'))
+                
+            from werkzeug.security import generate_password_hash
+            current_user.password = generate_password_hash(new_password, method='scrypt')
+            flash('Şifreniz başarıyla güncellendi!', 'success')
         
         # Avatar Resim Yükleme Kontrolü (Güvenlik Odaklı +4 Puan)
         if avatar_file and avatar_file.filename != '':

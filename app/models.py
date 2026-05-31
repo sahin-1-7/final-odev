@@ -93,3 +93,15 @@ class ChatHistory(db.Model):
     
     # Kullanıcı ilişkisi
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), nullable=False)
+
+
+class DeveloperEmail(db.Model):
+    __tablename__ = 'developer_emails'
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    sender: Mapped[str] = mapped_column(String(120), nullable=False)
+    recipient: Mapped[str] = mapped_column(String(120), nullable=False)
+    subject: Mapped[str] = mapped_column(String(200), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    html: Mapped[str] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

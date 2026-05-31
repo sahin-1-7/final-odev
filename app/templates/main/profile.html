@@ -41,13 +41,31 @@
                         </div>
 
                         <!-- E-posta Girişi -->
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label for="email" class="form-label text-secondary fs-7 fw-semibold">{{ _('E-posta Adresi') }}</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-dark border-secondary border-end-0 text-secondary"><i class="bi bi-envelope"></i></span>
                                 <input type="email" class="form-control border-secondary border-start-0 ps-0" id="email" name="email" value="{{ current_user.email }}" required>
                             </div>
                         </div>
+
+                        <!-- Şifre Değiştirme (İsteğe Bağlı) -->
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label text-secondary fs-7 fw-semibold">{{ _('Yeni Şifre (Değiştirmek istemiyorsanız boş bırakın)') }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary border-end-0 text-secondary"><i class="bi bi-key"></i></span>
+                                <input type="password" class="form-control border-secondary border-start-0 ps-0" id="new_password" name="new_password" placeholder="••••••••">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="confirm_password" class="form-label text-secondary fs-7 fw-semibold">{{ _('Yeni Şifre Tekrar') }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary border-end-0 text-secondary"><i class="bi bi-key-fill"></i></span>
+                                <input type="password" class="form-control border-secondary border-start-0 ps-0" id="confirm_password" name="confirm_password" placeholder="••••••••">
+                            </div>
+                        </div>
+
                         <!-- Kaydetme Butonu -->
                         <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-3 mb-2">
                             <i class="bi bi-save me-1.5"></i>{{ _('Değişiklikleri Kaydet') }}
