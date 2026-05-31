@@ -58,6 +58,7 @@ Giriş bilgileriniz güvendedir.
     # Geliştirici Posta Kutusu İçin Veritabanına Kaydet
     try:
         from app.models import DeveloperEmail
+        from app.extensions import db
         dev_email = DeveloperEmail(
             sender=current_app.config.get('MAIL_DEFAULT_SENDER') or 'noreply@glide.com',
             recipient=user.email,
